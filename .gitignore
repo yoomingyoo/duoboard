@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Editor / IDE
+.vscode/
+.idea/
+
+# Cursor (local workspace settings/state)
+.cursor/
+.cursorrules
+
+# Logs
+*.log
+
+# Local env / secrets
+.env
+.env.*
+*.local
