@@ -13,6 +13,24 @@ type Database = {
           created_at: string;
           updated_at: string;
         };
+        Insert: {
+          id?: string;
+          title: string;
+          assignee: "hyejin" | "mingyoo";
+          status: "todo" | "doing" | "done";
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          assignee?: "hyejin" | "mingyoo";
+          status?: "todo" | "doing" | "done";
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
       };
       retros: {
         Row: {
@@ -23,6 +41,24 @@ type Database = {
           bad: string;
           next_action: string;
           created_at: string;
+        };
+        Insert: {
+          id?: string;
+          author: "hyejin" | "mingyoo";
+          week_of: string;
+          good: string;
+          bad: string;
+          next_action: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          author?: "hyejin" | "mingyoo";
+          week_of?: string;
+          good?: string;
+          bad?: string;
+          next_action?: string;
+          created_at?: string;
         };
       };
     };

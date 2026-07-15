@@ -17,9 +17,11 @@ export function KanbanColumn({ title, status, tasks }: KanbanColumnProps) {
         <span>{filtered.length}</span>
       </header>
       <div className="kanban-column__body">
-        {filtered.map((task) => (
-          <TaskCard key={task.id} task={task} />
-        ))}
+        {filtered.length === 0 ? (
+          <div className="empty-state">아직 카드가 없어.</div>
+        ) : (
+          filtered.map((task) => <TaskCard key={task.id} task={task} />)
+        )}
       </div>
     </section>
   );

@@ -36,8 +36,13 @@ a {
 
 button,
 input,
+select,
 textarea {
   font: inherit;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
 
 .page-shell {
@@ -73,7 +78,8 @@ textarea {
 .quick-links,
 .info-grid,
 .kanban-grid,
-.retro-layout {
+.retro-layout,
+.board-layout {
   display: grid;
   gap: 16px;
 }
@@ -89,7 +95,8 @@ textarea {
 .retro-panel,
 .task-card,
 .retro-item,
-.login-card {
+.login-card,
+.task-create-panel {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 20px;
@@ -100,7 +107,8 @@ textarea {
 .info-card,
 .login-card,
 .retro-panel,
-.kanban-column {
+.kanban-column,
+.task-create-panel {
   padding: 20px;
 }
 
@@ -162,14 +170,16 @@ textarea {
 }
 
 .login-form,
-.retro-fields {
+.retro-fields,
+.task-create-form {
   display: grid;
   gap: 14px;
   margin-top: 16px;
 }
 
 .login-form label,
-.retro-fields label {
+.retro-fields label,
+.task-create-form label {
   display: grid;
   gap: 8px;
   color: #374151;
@@ -229,8 +239,13 @@ textarea {
   font-weight: 700;
 }
 
+.board-layout {
+  grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+  align-items: start;
+}
+
 .kanban-grid {
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .kanban-column__header {
@@ -260,10 +275,12 @@ textarea {
 
 .task-card {
   padding: 14px;
+  display: grid;
+  gap: 12px;
 }
 
 .task-card__meta {
-  margin-bottom: 10px;
+  margin-bottom: 2px;
 }
 
 .task-card__badge {
@@ -274,6 +291,42 @@ textarea {
   color: #4338ca;
   font-size: 12px;
   font-weight: 700;
+}
+
+.task-status-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.status-chip {
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  padding: 8px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.status-chip--active {
+  background: var(--primary-soft);
+  border-color: #93c5fd;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.task-create-panel h2 {
+  margin-top: 6px;
+  margin-bottom: 8px;
+}
+
+.empty-state {
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  padding: 18px 14px;
+  color: var(--muted);
+  text-align: center;
+  background: #f8fafc;
 }
 
 .status-note {
@@ -305,6 +358,16 @@ textarea {
   justify-content: space-between;
   gap: 12px;
   color: var(--muted);
+}
+
+@media (max-width: 900px) {
+  .board-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .kanban-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 640px) {

@@ -1,4 +1,5 @@
 import type { Task } from "@/lib/sample-data";
+import { AddTaskForm } from "./AddTaskForm";
 import { KanbanColumn } from "./KanbanColumn";
 
 type KanbanBoardProps = {
@@ -7,10 +8,14 @@ type KanbanBoardProps = {
 
 export function KanbanBoard({ tasks }: KanbanBoardProps) {
   return (
-    <div className="kanban-grid">
-      <KanbanColumn title="Todo" status="todo" tasks={tasks} />
-      <KanbanColumn title="Doing" status="doing" tasks={tasks} />
-      <KanbanColumn title="Done" status="done" tasks={tasks} />
+    <div className="board-layout">
+      <AddTaskForm />
+
+      <div className="kanban-grid">
+        <KanbanColumn title="Todo" status="todo" tasks={tasks} />
+        <KanbanColumn title="Doing" status="doing" tasks={tasks} />
+        <KanbanColumn title="Done" status="done" tasks={tasks} />
+      </div>
     </div>
   );
 }
