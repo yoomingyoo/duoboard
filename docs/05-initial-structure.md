@@ -7,10 +7,10 @@
 
 ## 0. 가장 중요한 전제: 데이터는 반드시 서버를 거친다
 
-초대코드 방식을 쓰기로 했으므로, **브라우저가 Supabase에 직접 접근하면 안 된다.**
+초대코드 방식으로 단순하게 운영하기로 했으므로, **이번 MVP에서는 브라우저가 Supabase에 직접 접근하지 않는다.**
 
-- 브라우저에서 Supabase를 직접 호출하면 접속 키가 클라이언트 번들에 노출된다.
-- 그 경우 초대코드를 몰라도 키만으로 데이터에 접근 가능해져, 초대코드가 무의미해진다.
+- Supabase의 anon key 자체는 공개 가능한 키이지만, 이번 프로젝트는 정식 사용자 인증/RLS 구조 대신 초대코드 + 세션 기반으로 단순화하기로 했다.
+- 따라서 브라우저가 직접 DB에 붙는 구조보다, 서버에서 세션을 검사한 뒤 Supabase에 접근하는 구조가 더 단순하고 안전하다.
 
 ### 채택 방식
 1. 브라우저 → **우리 서버(서버 함수)** → Supabase 순서로만 데이터가 흐른다.
@@ -29,11 +29,11 @@
 
 | 항목 | 선택 | 이유 |
 |---|---|---|
-| 프론트엔드 | TanStack Start + Vite + Tailwind | 민규가 운세상점에서 이미 사용 중. 학습 비용 0, 기존 자산(CLAUDE.md 등) 재활용 가능 |
-| 데이터 접근 | TanStack Start 서버 함수 | 위 0번 전제를 만족시키는 가장 단순한 방법 |
+| 프론트엔드 | Next.js + App Router | 최종 결정 사항. 문서/위키의 초기 구조 방향과도 일치 |
+| 데이터 접근 | Next.js 서버 액션 또는 Route Handler | 위 0번 전제를 만족시키는 가장 단순한 방법 |
 | DB | Supabase (Postgres) | 확정 사항 |
 | 배포 | Vercel | 확정 사항 |
-| 패키지 매니저 | Bun (npm 폴백) | 운세상점과 동일 |
+| 패키지 매니저 | npm 또는 pnpm | Next.js 기본 흐름에 맞춰 단순하게 시작 가능 |
 
 **실시간 동기화는 MVP에 넣지 않는다.** 2인용 보드이므로 화면 새로고침으로 충분하며,
 실시간 기능은 개발량 대비 이득이 작다.
@@ -58,28 +58,35 @@
 ```
 duoboard-app/
 ├── src/
-│   ├── routes/
-│   │   ├── login.tsx           # 초대코드 입력 화면
-│   │   ├── index.tsx           # 칸반 보드 (메인)
-│   │   └── retro.tsx           # 주간 회고 작성/목록
-│   ├── server/
-│   │   ├── auth.ts             # 초대코드 검증, 세션 쿠키 발급/확인
-│   │   ├── tasks.ts            # 할 일 조회/추가/수정/이동 (서버 함수)
-│   │   └── retros.ts           # 회고 조회/작성 (서버 함수)
+│   ├── app/
+│   │   ├── login/
+│   │   │   └── page.tsx          # 초대코드 입력 화면
+│   │   ├── board/
+│   │   │   └── page.tsx          # 칸반 보드 (메인)
+│   │   ├── retro/
+│   │   │   └── page.tsx          # 주간 회고 작성/목록
+│   │   ├── api/
+│   │   │   ├── tasks/route.ts    # 할 일 조회/추가/수정
+│   │   │   └── retros/route.ts   # 회고 조회/작성
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   └── globals.css
+│   ├── actions/
+│   │   └── auth.ts               # 초대코드 검증, 세션 쿠키 발급/확인
 │   ├── components/
-│   │   ├── KanbanColumn.tsx    # Todo / Doing / Done 컬럼
-│   │   ├── TaskCard.tsx        # 할 일 카드
-│   │   └── RetroForm.tsx       # 회고 입력 폼
-│   ├── lib/
-│   │   └── supabase.server.ts  # 서버 전용 Supabase 클라이언트
-│   └── styles/global.css
+│   │   ├── KanbanColumn.tsx      # Todo / Doing / Done 컬럼
+│   │   ├── TaskCard.tsx          # 할 일 카드
+│   │   └── RetroForm.tsx         # 회고 입력 폼
+│   └── lib/
+│       └── supabase/
+│           └── server.ts         # 서버 전용 Supabase 클라이언트
 ├── supabase/
-│   └── schema.sql              # 테이블 정의
+│   └── schema.sql                # 테이블 정의
 ├── .env.example
 └── README.md
 ```
 
-`.server.ts` / `server/` 디렉터리 규칙은 "이 파일은 브라우저로 절대 나가지 않는다"는 표시다.
+`server.ts`, `actions/`, `app/api/` 경로는 "이 코드는 브라우저로 직접 노출되지 않는다"는 전제를 지키는 구간이다.
 실수로 키가 노출되는 것을 구조적으로 막는다.
 
 ---
@@ -131,9 +138,10 @@ SUPABASE_SERVICE_ROLE_KEY=
 
 | 주차 | 내용 |
 |---|---|
-| 1주차 | 리포 세팅, Supabase 프로젝트 생성, `tasks`/`retros` 테이블 생성, RLS 전체 차단 |
+| 완료 | Supabase 계정 생성 및 프로젝트 생성 |
+| 1주차 | Next.js 리포 세팅, `tasks`/`retros` 테이블 생성, RLS 전체 차단 |
 | 1~2주차 | 초대코드 로그인 화면 + 세션 쿠키 |
-| 2주차 | 칸반 보드 (할 일 추가 / 상태 이동 / 담당자 지정) → **여기까지가 "2주 내 목표"** |
+| 2주차 | 칸반 보드 (할 일 추가 / 상태 변경 / 담당자 지정) → **여기까지가 "2주 내 목표"** |
 | 3주차 | 주간 회고 작성/목록 |
 | 4주차 | Vercel 배포, 실사용 테스트, 버그 수정 |
 
