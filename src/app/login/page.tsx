@@ -1,6 +1,17 @@
 import Link from "next/link";
+import { InviteCodeForm } from "@/components/auth/InviteCodeForm";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { SESSION_COOKIE, verifySignedSessionValue } from "@/lib/auth/session";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const cookieStore = await cookies();
+  const session = await verifySignedSessionValue(cookieStore.get(SESSION_COOKIE)?.value);
+
+  if (session) {
+    redirect("/board");
+  }
+
   return (
     <main className="page-shell">
       <header className="page-header">
@@ -17,18 +28,10 @@ export default function LoginPage() {
 
       <section className="login-card">
         <p className="muted">
-          실제 구현 단계에서는 여기서 초대코드를 검증하고 HttpOnly 세션 쿠키를 발급합니다.
+          초대코드를 확인하면 HttpOnly 세션 쿠키를 발급하고, 이후 보드와 회고 화면은 해당 세션이 있어야 접근할 수 있게 구성합니다.
         </p>
-        <form className="login-form">
-          <label>
-            <span>초대코드</span>
-            <input className="input" placeholder="예: DUOBOARD-2026" />
-          </label>
-          <button className="primary-button" type="button">
-            입장하기 (다음 단계)
-          </button>
-        </form>
-        <p className="help-text">링크에 초대코드가 직접 노출되지 않는 구조를 기준으로 설계합니다.</p>
+        <InviteCodeForm />
+        <p className="help-text">링크에 초대코드가 직접 노출되지 않는 구조를 기준으로 설계했습니다.</p>
       </section>
     </main>
   );

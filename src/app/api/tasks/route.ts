@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
-import { sampleTasks } from "@/lib/sample-data";
+import { hasValidApiInviteSession } from "@/lib/auth/api-guard";
+import { getTasks } from "@/lib/data";
 
 export async function GET() {
-  return NextResponse.json({ tasks: sampleTasks, source: "sample" });
+  if (!(await hasValidApiInviteSession())) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const result = await getTasks();
+  return NextResponse.json(result);
 }
