@@ -31,7 +31,7 @@ export function TaskCard({ task }: TaskCardProps) {
 
           return (
             <button
-              className={`status-chip${isCurrent ? " status-chip--active" : ""}`}
+              className={`status-chip status-chip--${status.value}${isCurrent ? " status-chip--active" : ""}`}
               disabled={isCurrent}
               key={status.value}
               name="status"

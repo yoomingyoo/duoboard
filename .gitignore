@@ -40,3 +40,6 @@ yarn-error.log*
 
 # Vercel
 .vercel
+
+# Playwright MCP local test artifacts
+.playwright-mcp/
