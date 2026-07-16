@@ -35,6 +35,7 @@
   /* 경고/에러 (붉은 계열, 보라/분홍 아님) */
   --danger: #d9836f;
   --danger-bg: rgba(217, 131, 111, 0.14);
+  --danger-muted: #9c766f;
 
   --shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
 }
@@ -626,11 +627,11 @@ textarea {
 }
 
 .text-button--danger {
-  color: var(--danger);
+  color: var(--danger-muted);
 }
 
 .text-button--danger:hover {
-  filter: brightness(1.15);
+  color: var(--danger);
 }
 
 @media (max-width: 900px) {
