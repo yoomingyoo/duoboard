@@ -571,6 +571,68 @@ textarea {
   color: var(--fg-secondary);
 }
 
+.item-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.inline-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--fg-muted);
+  font-size: 13px;
+}
+
+.inline-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.inline-toggle:hover {
+  color: var(--fg-secondary);
+}
+
+.inline-toggle .chevron {
+  transition: transform 0.2s ease;
+}
+
+.inline-disclosure[open] > .inline-toggle .chevron {
+  transform: rotate(180deg);
+}
+
+.inline-edit-body {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-soft);
+  display: grid;
+  gap: 10px;
+}
+
+.text-button {
+  background: none;
+  border: none;
+  padding: 4px 2px;
+  font-size: 13px;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+
+.text-button:hover {
+  color: var(--fg-secondary);
+}
+
+.text-button--danger {
+  color: var(--danger);
+}
+
+.text-button--danger:hover {
+  filter: brightness(1.15);
+}
+
 @media (max-width: 900px) {
   .board-layout {
     grid-template-columns: 1fr;

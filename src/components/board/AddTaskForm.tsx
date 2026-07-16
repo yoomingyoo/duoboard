@@ -1,4 +1,5 @@
 import { createTaskAction } from "@/actions/tasks";
+import { ChevronIcon } from "@/components/common/ChevronIcon";
 
 export function AddTaskForm() {
   return (
@@ -8,20 +9,7 @@ export function AddTaskForm() {
           <p className="eyebrow">new task</p>
           <h2>할 일 추가</h2>
         </div>
-        <svg
-          aria-hidden="true"
-          className="chevron"
-          fill="none"
-          height="18"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-          width="18"
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
+        <ChevronIcon size={18} />
       </summary>
 
       <div className="task-create-panel__body">

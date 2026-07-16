@@ -105,6 +105,52 @@ export async function createTaskRecord(input: {
   return mapTask(data);
 }
 
+export async function updateTaskDetailsRecord(input: {
+  taskId: FormDataEntryValue | string | null | undefined;
+  title: FormDataEntryValue | string | null | undefined;
+  assignee: FormDataEntryValue | string | null | undefined;
+}) {
+  const taskId = typeof input.taskId === "string" ? input.taskId : "";
+
+  if (!taskId) {
+    throw new Error("수정할 작업 ID가 없어.");
+  }
+
+  const title = parseTaskTitle(input.title);
+  const assignee = parseTaskAssignee(input.assignee);
+  const supabase = getSupabaseClientOrThrow();
+
+  const { data, error } = await supabase
+    .from("tasks")
+    .update({ title, assignee })
+    .eq("id", taskId)
+    .select("id,title,assignee,status")
+    .single();
+
+  if (error) {
+    throw new Error(`작업을 수정하지 못했어: ${error.message}`);
+  }
+
+  return mapTask(data);
+}
+
+export async function deleteTaskRecord(input: {
+  taskId: FormDataEntryValue | string | null | undefined;
+}) {
+  const taskId = typeof input.taskId === "string" ? input.taskId : "";
+
+  if (!taskId) {
+    throw new Error("삭제할 작업 ID가 없어.");
+  }
+
+  const supabase = getSupabaseClientOrThrow();
+  const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+
+  if (error) {
+    throw new Error(`작업을 삭제하지 못했어: ${error.message}`);
+  }
+}
+
 export async function updateTaskStatusRecord(input: {
   taskId: FormDataEntryValue | string | null | undefined;
   status: FormDataEntryValue | string | null | undefined;
