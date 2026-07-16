@@ -11,7 +11,7 @@ export function KanbanColumn({ title, status, tasks }: KanbanColumnProps) {
   const filtered = tasks.filter((task) => task.status === status);
 
   return (
-    <section className="kanban-column">
+    <section className={`kanban-column kanban-column--${status}`}>
       <header className="kanban-column__header">
         <h2>{title}</h2>
         <span>{filtered.length}</span>

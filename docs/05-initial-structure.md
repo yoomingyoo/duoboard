@@ -53,62 +53,75 @@
 
 ---
 
-## 3. 폴더 구조
+## 3. 폴더 구조 (실제 구현 기준)
 
 ```
-duoboard-app/
+duoboard/
 ├── src/
 │   ├── app/
-│   │   ├── login/
-│   │   │   └── page.tsx          # 초대코드 입력 화면
-│   │   ├── board/
-│   │   │   └── page.tsx          # 칸반 보드 (메인)
-│   │   ├── retro/
-│   │   │   └── page.tsx          # 주간 회고 작성/목록
-│   │   ├── api/
-│   │   │   ├── tasks/route.ts    # 할 일 조회/추가/수정
-│   │   │   └── retros/route.ts   # 회고 조회/작성
+│   │   ├── page.tsx                    # 랜딩: 세션 있으면 /board로 리다이렉트
 │   │   ├── layout.tsx
-│   │   ├── page.tsx
-│   │   └── globals.css
+│   │   ├── globals.css
+│   │   ├── login/page.tsx              # 초대코드 입력 화면
+│   │   ├── board/page.tsx              # 칸반 보드 (세션 가드 적용)
+│   │   ├── retro/page.tsx              # 주간 회고 작성/목록 (세션 가드 적용)
+│   │   └── api/
+│   │       ├── tasks/route.ts          # 할 일 조회 API
+│   │       └── retros/route.ts         # 회고 조회 API
 │   ├── actions/
-│   │   └── auth.ts               # 초대코드 검증, 세션 쿠키 발급/확인
+│   │   ├── auth.ts                     # 초대코드 검증 → 서명된 세션 쿠키 발급 (서버 액션)
+│   │   └── tasks.ts                    # 할 일 추가/상태 변경 (서버 액션)
 │   ├── components/
-│   │   ├── KanbanColumn.tsx      # Todo / Doing / Done 컬럼
-│   │   ├── TaskCard.tsx          # 할 일 카드
-│   │   └── RetroForm.tsx         # 회고 입력 폼
+│   │   ├── auth/InviteCodeForm.tsx
+│   │   ├── board/KanbanBoard.tsx
+│   │   ├── board/KanbanColumn.tsx      # Todo / Doing / Done 컬럼
+│   │   ├── board/TaskCard.tsx
+│   │   ├── board/AddTaskForm.tsx
+│   │   ├── retro/RetroForm.tsx
+│   │   └── common/PageHeader.tsx
 │   └── lib/
-│       └── supabase/
-│           └── server.ts         # 서버 전용 Supabase 클라이언트
+│       ├── auth/
+│       │   ├── session.ts              # 세션 쿠키 서명/검증 (SESSION_SECRET)
+│       │   ├── invite-code.ts          # 초대코드 검증 (INVITE_CODE)
+│       │   ├── guard.ts                # 페이지용: 세션 없으면 /login으로 redirect
+│       │   └── api-guard.ts            # API 라우트용: 세션 유효 여부만 반환
+│       ├── supabase/server.ts          # 서버 전용 Supabase 클라이언트
+│       ├── data.ts                     # Supabase 미설정 시 샘플 데이터로 폴백
+│       ├── sample-data.ts              # 로컬 개발용 샘플 tasks/retros
+│       └── tasks.ts                    # tasks 조회/추가/상태 변경 로직
 ├── supabase/
-│   └── schema.sql                # 테이블 정의
-├── .env.example
+│   └── schema.sql                      # 테이블 정의 (실제 DDL)
 └── README.md
 ```
 
-`server.ts`, `actions/`, `app/api/` 경로는 "이 코드는 브라우저로 직접 노출되지 않는다"는 전제를 지키는 구간이다.
-실수로 키가 노출되는 것을 구조적으로 막는다.
+`actions/`, `app/api/`, `lib/supabase/server.ts`는 서버에서만 실행되는 코드다.
+`"use client"`가 붙은 컴포넌트에서는 이 파일들을 절대 import하지 않는다.
+실수로 키가 노출되는 것을 구조적으로 막는 규칙이다.
+
+Supabase 환경변수(`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`)가 없으면
+`lib/data.ts`가 `lib/sample-data.ts`의 샘플 데이터로 자동 폴백하도록 되어 있어,
+로컬에서 Supabase 세팅 전에도 화면 확인이 가능하다.
 
 ---
 
 ## 4. DB 테이블
 
-### tasks
+### tasks (실제 `supabase/schema.sql` 기준)
 | 컬럼 | 타입 | 설명 |
 |---|---|---|
 | id | uuid | 고유 번호 |
 | title | text | 할 일 제목 |
 | status | text | `todo` / `doing` / `done` |
-| assignee | text | `hyejin` / `mingu` |
+| assignee | text | `hyejin` / `mingyoo` |
 | position | int | **같은 컬럼 안에서의 순서** (없으면 카드가 옮길 때마다 순서가 튄다) |
 | created_at | timestamptz | 생성 시각 |
-| updated_at | timestamptz | 수정 시각 |
+| updated_at | timestamptz | 수정 시각 (트리거로 자동 갱신) |
 
 ### retros
 | 컬럼 | 타입 | 설명 |
 |---|---|---|
 | id | uuid | 고유 번호 |
-| author | text | `hyejin` / `mingu` |
+| author | text | `hyejin` / `mingyoo` |
 | week_of | date | 해당 주의 월요일 날짜 |
 | good | text | 잘한 점 |
 | bad | text | 아쉬운 점 |
@@ -120,15 +133,19 @@ duoboard-app/
 
 ---
 
-## 5. 환경변수 (.env.example)
+## 5. 환경변수 (`.env.local`, 아직 리포에 예시 파일 없음)
 
 ```
-# 서버 전용 — 절대 VITE_/PUBLIC_ 접두사 붙이지 말 것
+# 서버 전용 — 절대 NEXT_PUBLIC_ 접두사 붙이지 말 것
 INVITE_CODE=
 SESSION_SECRET=
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 ```
+
+네 개 변수 모두 `src/lib/auth`, `src/lib/supabase/server.ts`에서 실제로 읽고 있다.
+설정하지 않으면 `INVITE_CODE`는 개발용 기본값(`DUOBOARD-2026`)으로, Supabase 연결 정보는
+`lib/data.ts`의 샘플 데이터 폴백으로 동작한다.
 
 초대코드가 유출된 것 같으면 `INVITE_CODE` 값만 바꾸고 Vercel에 재배포하면 즉시 무효화된다.
 
