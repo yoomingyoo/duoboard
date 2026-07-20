@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "duoboard",
-  description: "2인 회고/할 일 보드 MVP scaffold",
+  description:
+    "초대코드로 소수의 인원만 함께 쓰는 가벼운 할 일 + 회고 보드",
 };
 
 export default function RootLayout({
