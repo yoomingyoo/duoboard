@@ -37,6 +37,12 @@
   --danger-bg: rgba(217, 131, 111, 0.14);
   --danger-muted: #9c766f;
 
+  /* 담당자 구분 (톤 다운, 상태/포인트 컬러와 별개) */
+  --assignee-mingyoo: #8fa3d9;
+  --assignee-mingyoo-bg: rgba(143, 163, 217, 0.14);
+  --assignee-hyejin: #a3a3ad;
+  --assignee-hyejin-bg: rgba(163, 163, 173, 0.14);
+
   --shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
 }
 
@@ -229,6 +235,11 @@ button:disabled {
 
 .login-card {
   max-width: 480px;
+}
+
+.login-card__brand {
+  display: flex;
+  margin-bottom: 4px;
 }
 
 .login-form,
@@ -426,6 +437,18 @@ textarea {
   font-weight: 600;
 }
 
+.task-card__badge--mingyoo {
+  background: var(--assignee-mingyoo-bg);
+  border-color: var(--assignee-mingyoo);
+  color: var(--assignee-mingyoo);
+}
+
+.task-card__badge--hyejin {
+  background: var(--assignee-hyejin-bg);
+  border-color: var(--assignee-hyejin);
+  color: var(--assignee-hyejin);
+}
+
 .task-card strong {
   color: var(--fg);
   font-weight: 600;
@@ -570,6 +593,28 @@ textarea {
 
 .retro-item b {
   color: var(--fg-secondary);
+}
+
+.retro-item__row {
+  padding: 6px 10px;
+  border-left: 3px solid transparent;
+  border-radius: 4px;
+  line-height: 1.55;
+}
+
+.retro-item__row--good {
+  border-left-color: var(--status-done);
+  background: var(--status-done-bg);
+}
+
+.retro-item__row--bad {
+  border-left-color: var(--danger-muted);
+  background: var(--danger-bg);
+}
+
+.retro-item__row--next {
+  border-left-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .item-actions {

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { KanbanBoard } from "@/components/board/KanbanBoard";
 import { PageHeader } from "@/components/common/PageHeader";
 import { requireInviteSession } from "@/lib/auth/guard";
@@ -19,9 +18,6 @@ export default async function BoardPage() {
 
       <div className="page-toolbar">
         <span className="source-badge">data source: {source}</span>
-        <Link className="nav-pill" href="/retro">
-          회고로 이동
-        </Link>
       </div>
 
       <div style={{ height: 20 }} />
