@@ -1,7 +1,11 @@
 import { createTaskAction } from "@/actions/tasks";
 import { ChevronIcon } from "@/components/common/ChevronIcon";
 
-export function AddTaskForm() {
+type AddTaskFormProps = {
+  projectId: string;
+};
+
+export function AddTaskForm({ projectId }: AddTaskFormProps) {
   return (
     <details className="task-create-panel">
       <summary className="task-create-panel__summary">
@@ -18,6 +22,7 @@ export function AddTaskForm() {
         </p>
 
         <form action={createTaskAction} className="task-create-form">
+          <input name="projectId" type="hidden" value={projectId} />
           <label>
             <span>할 일 제목</span>
             <input

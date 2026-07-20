@@ -4,6 +4,7 @@ import type { Task, TaskStatus } from "@/lib/sample-data";
 
 type TaskCardProps = {
   task: Task;
+  projectId: string;
 };
 
 const assigneeLabel = {
@@ -17,7 +18,7 @@ const statusMeta: Array<{ label: string; value: TaskStatus }> = [
   { label: "Done", value: "done" },
 ];
 
-export function TaskCard({ task }: TaskCardProps) {
+export function TaskCard({ task, projectId }: TaskCardProps) {
   return (
     <article className="task-card">
       <div className="task-card__meta">
@@ -28,6 +29,7 @@ export function TaskCard({ task }: TaskCardProps) {
       <strong>{task.title}</strong>
 
       <form action={updateTaskStatusAction} className="task-status-form">
+        <input name="projectId" type="hidden" value={projectId} />
         <input name="taskId" type="hidden" value={task.id} />
         {statusMeta.map((status) => {
           const isCurrent = status.value === task.status;
@@ -54,6 +56,7 @@ export function TaskCard({ task }: TaskCardProps) {
             수정
           </summary>
           <form action={updateTaskAction} className="inline-edit-body">
+            <input name="projectId" type="hidden" value={projectId} />
             <input name="taskId" type="hidden" value={task.id} />
             <label>
               <span>할 일 제목</span>
@@ -73,6 +76,7 @@ export function TaskCard({ task }: TaskCardProps) {
         </details>
 
         <form action={deleteTaskAction}>
+          <input name="projectId" type="hidden" value={projectId} />
           <input name="taskId" type="hidden" value={task.id} />
           <button className="text-button text-button--danger" type="submit">
             삭제

@@ -1,3 +1,4 @@
+import { isProjectScopeUnavailable } from "@/lib/project-scope";
 import type { Retro, Task } from "@/lib/sample-data";
 import { sampleRetros, sampleTasks } from "@/lib/sample-data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -34,42 +35,74 @@ function mapRetro(row: {
   } satisfies Retro;
 }
 
-export async function getTasks() {
+export async function getTasks(projectId: string) {
   const supabase = createSupabaseServerClient();
   if (!supabase) {
     return { tasks: sampleTasks, source: "sample" as const };
   }
 
-  const { data, error } = await supabase
+  const scopedQuery = await supabase
+    .from("tasks")
+    .select("id,title,assignee,status,position")
+    .eq("project_id", projectId)
+    .order("status")
+    .order("position");
+
+  if (!scopedQuery.error) {
+    return { tasks: scopedQuery.data.map(mapTask), source: "supabase" as const };
+  }
+
+  if (!isProjectScopeUnavailable(scopedQuery.error)) {
+    console.error("Failed to load tasks from Supabase", scopedQuery.error);
+    return { tasks: sampleTasks, source: "sample-fallback" as const };
+  }
+
+  const legacyQuery = await supabase
     .from("tasks")
     .select("id,title,assignee,status,position")
     .order("status")
     .order("position");
 
-  if (error) {
-    console.error("Failed to load tasks from Supabase", error);
+  if (legacyQuery.error) {
+    console.error("Failed to load legacy tasks from Supabase", legacyQuery.error);
     return { tasks: sampleTasks, source: "sample-fallback" as const };
   }
 
-  return { tasks: data.map(mapTask), source: "supabase" as const };
+  return { tasks: legacyQuery.data.map(mapTask), source: "legacy-supabase" as const };
 }
 
-export async function getRetros() {
+export async function getRetros(projectId: string) {
   const supabase = createSupabaseServerClient();
   if (!supabase) {
     return { retros: sampleRetros, source: "sample" as const };
   }
 
-  const { data, error } = await supabase
+  const scopedQuery = await supabase
+    .from("retros")
+    .select("id,author,week_of,good,bad,next_action")
+    .eq("project_id", projectId)
+    .order("week_of", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (!scopedQuery.error) {
+    return { retros: scopedQuery.data.map(mapRetro), source: "supabase" as const };
+  }
+
+  if (!isProjectScopeUnavailable(scopedQuery.error)) {
+    console.error("Failed to load retros from Supabase", scopedQuery.error);
+    return { retros: sampleRetros, source: "sample-fallback" as const };
+  }
+
+  const legacyQuery = await supabase
     .from("retros")
     .select("id,author,week_of,good,bad,next_action")
     .order("week_of", { ascending: false })
     .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("Failed to load retros from Supabase", error);
+  if (legacyQuery.error) {
+    console.error("Failed to load legacy retros from Supabase", legacyQuery.error);
     return { retros: sampleRetros, source: "sample-fallback" as const };
   }
 
-  return { retros: data.map(mapRetro), source: "supabase" as const };
+  return { retros: legacyQuery.data.map(mapRetro), source: "legacy-supabase" as const };
 }

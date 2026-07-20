@@ -3,9 +3,33 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 type Database = {
   public: {
     Tables: {
+      projects: {
+        Row: {
+          id: string;
+          slug: string;
+          name: string;
+          is_default: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          name: string;
+          is_default?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          slug?: string;
+          name?: string;
+          is_default?: boolean;
+          created_at?: string;
+        };
+      };
       tasks: {
         Row: {
           id: string;
+          project_id: string;
           title: string;
           assignee: "hyejin" | "mingyoo";
           status: "todo" | "doing" | "done";
@@ -15,6 +39,7 @@ type Database = {
         };
         Insert: {
           id?: string;
+          project_id: string;
           title: string;
           assignee: "hyejin" | "mingyoo";
           status: "todo" | "doing" | "done";
@@ -24,6 +49,7 @@ type Database = {
         };
         Update: {
           id?: string;
+          project_id?: string;
           title?: string;
           assignee?: "hyejin" | "mingyoo";
           status?: "todo" | "doing" | "done";
@@ -35,6 +61,7 @@ type Database = {
       retros: {
         Row: {
           id: string;
+          project_id: string;
           author: "hyejin" | "mingyoo";
           week_of: string;
           good: string;
@@ -44,6 +71,7 @@ type Database = {
         };
         Insert: {
           id?: string;
+          project_id: string;
           author: "hyejin" | "mingyoo";
           week_of: string;
           good: string;
@@ -53,6 +81,7 @@ type Database = {
         };
         Update: {
           id?: string;
+          project_id?: string;
           author?: "hyejin" | "mingyoo";
           week_of?: string;
           good?: string;

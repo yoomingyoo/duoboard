@@ -4,6 +4,7 @@ import type { Retro } from "@/lib/sample-data";
 
 type RetroFormProps = {
   retros: Retro[];
+  projectId: string;
 };
 
 const authorLabel = {
@@ -46,7 +47,7 @@ function getCurrentWeekMonday() {
   return `${year}-${month}-${date}`;
 }
 
-function RetroItem({ retro }: { retro: Retro }) {
+function RetroItem({ projectId, retro }: { projectId: string; retro: Retro }) {
   return (
     <article className="retro-item">
       <div className="retro-item__meta">
@@ -64,6 +65,7 @@ function RetroItem({ retro }: { retro: Retro }) {
             수정
           </summary>
           <form action={updateRetroAction} className="inline-edit-body">
+            <input name="projectId" type="hidden" value={projectId} />
             <input name="retroId" type="hidden" value={retro.id} />
             <label>
               <span>작성자</span>
@@ -95,6 +97,7 @@ function RetroItem({ retro }: { retro: Retro }) {
         </details>
 
         <form action={deleteRetroAction}>
+          <input name="projectId" type="hidden" value={projectId} />
           <input name="retroId" type="hidden" value={retro.id} />
           <button className="text-button text-button--danger" type="submit">
             삭제
@@ -105,12 +108,13 @@ function RetroItem({ retro }: { retro: Retro }) {
   );
 }
 
-export function RetroForm({ retros }: RetroFormProps) {
+export function RetroForm({ retros, projectId }: RetroFormProps) {
   return (
     <div className="retro-layout">
       <section className="retro-panel">
         <h2>이번 주 회고 작성</h2>
         <form action={createRetroAction} className="retro-fields">
+          <input name="projectId" type="hidden" value={projectId} />
           <label>
             <span>작성자</span>
             <select className="input" defaultValue="mingyoo" name="author">
@@ -152,7 +156,7 @@ export function RetroForm({ retros }: RetroFormProps) {
           {retros.length === 0 ? (
             <div className="empty-state">아직 회고가 없어.</div>
           ) : (
-            retros.map((retro) => <RetroItem key={retro.id} retro={retro} />)
+            retros.map((retro) => <RetroItem key={retro.id} projectId={projectId} retro={retro} />)
           )}
         </div>
       </section>

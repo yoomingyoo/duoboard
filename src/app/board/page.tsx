@@ -2,10 +2,17 @@ import { KanbanBoard } from "@/components/board/KanbanBoard";
 import { PageHeader } from "@/components/common/PageHeader";
 import { requireInviteSession } from "@/lib/auth/guard";
 import { getTasks } from "@/lib/data";
+import { resolveCurrentProject } from "@/lib/projects";
 
-export default async function BoardPage() {
+type BoardPageProps = {
+  searchParams?: Promise<{ project?: string }>;
+};
+
+export default async function BoardPage({ searchParams }: BoardPageProps) {
   await requireInviteSession();
-  const { tasks, source } = await getTasks();
+  const params = searchParams ? await searchParams : undefined;
+  const { currentProject } = await resolveCurrentProject(params?.project);
+  const { tasks, source } = await getTasks(currentProject.id);
 
   return (
     <main className="page-shell">
@@ -18,10 +25,11 @@ export default async function BoardPage() {
 
       <div className="page-toolbar">
         <span className="source-badge">data source: {source}</span>
+        <span className="source-badge">project: {currentProject.name}</span>
       </div>
 
       <div style={{ height: 20 }} />
-      <KanbanBoard tasks={tasks} />
+      <KanbanBoard projectId={currentProject.id} tasks={tasks} />
 
       <div className="status-note">
         현재는 {source === "supabase" ? "Supabase에서" : "샘플 데이터로"} 보드를 불러오고 있어.

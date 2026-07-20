@@ -1,3 +1,4 @@
+import { isProjectScopeUnavailable } from "./project-scope";
 import type { Task, TaskStatus } from "./sample-data";
 import { createSupabaseServerClient } from "./supabase/server";
 
@@ -20,7 +21,6 @@ function mapTask(row: {
   } satisfies Task;
 }
 
-// Supabase generic 타입을 최소 정의만 써서 mutation query 추론이 불안정하므로 여기서는 client를 느슨하게 다룬다.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getSupabaseClientOrThrow(): any {
   const supabase = createSupabaseServerClient();
@@ -61,33 +61,82 @@ function parseTaskStatus(value: FormDataEntryValue | string | null | undefined):
   throw new Error("상태 값이 올바르지 않아.");
 }
 
-async function getNextPosition(status: TaskStatus) {
+function parseProjectId(value: FormDataEntryValue | string | null | undefined) {
+  const projectId = typeof value === "string" ? value.trim() : "";
+
+  if (!projectId) {
+    throw new Error("프로젝트 ID가 없어.");
+  }
+
+  return projectId;
+}
+
+async function getNextPosition(projectId: string, status: TaskStatus) {
   const supabase = getSupabaseClientOrThrow();
-  const { data, error } = await supabase
+  const scoped = await supabase
+    .from("tasks")
+    .select("position")
+    .eq("project_id", projectId)
+    .eq("status", status)
+    .order("position", { ascending: false })
+    .limit(1);
+
+  if (!scoped.error) {
+    const rows = (scoped.data ?? []) as Array<{ position: number }>;
+    return rows.length > 0 ? rows[0].position + 1 : 0;
+  }
+
+  if (!isProjectScopeUnavailable(scoped.error)) {
+    throw new Error(`다음 위치를 계산하지 못했어: ${scoped.error.message}`);
+  }
+
+  const legacy = await supabase
     .from("tasks")
     .select("position")
     .eq("status", status)
     .order("position", { ascending: false })
     .limit(1);
 
-  if (error) {
-    throw new Error(`다음 위치를 계산하지 못했어: ${error.message}`);
+  if (legacy.error) {
+    throw new Error(`다음 위치를 계산하지 못했어: ${legacy.error.message}`);
   }
 
-  const rows = (data ?? []) as Array<{ position: number }>;
+  const rows = (legacy.data ?? []) as Array<{ position: number }>;
   return rows.length > 0 ? rows[0].position + 1 : 0;
 }
 
 export async function createTaskRecord(input: {
+  projectId: FormDataEntryValue | string | null | undefined;
   title: FormDataEntryValue | string | null | undefined;
   assignee: FormDataEntryValue | string | null | undefined;
 }) {
+  const projectId = parseProjectId(input.projectId);
   const title = parseTaskTitle(input.title);
   const assignee = parseTaskAssignee(input.assignee);
-  const position = await getNextPosition("todo");
+  const position = await getNextPosition(projectId, "todo");
   const supabase = getSupabaseClientOrThrow();
 
-  const { data, error } = await supabase
+  const scoped = await supabase
+    .from("tasks")
+    .insert({
+      project_id: projectId,
+      title,
+      assignee,
+      status: "todo",
+      position,
+    })
+    .select("id,title,assignee,status")
+    .single();
+
+  if (!scoped.error) {
+    return mapTask(scoped.data);
+  }
+
+  if (!isProjectScopeUnavailable(scoped.error)) {
+    throw new Error(`할 일을 저장하지 못했어: ${scoped.error.message}`);
+  }
+
+  const legacy = await supabase
     .from("tasks")
     .insert({
       title,
@@ -98,18 +147,20 @@ export async function createTaskRecord(input: {
     .select("id,title,assignee,status")
     .single();
 
-  if (error) {
-    throw new Error(`할 일을 저장하지 못했어: ${error.message}`);
+  if (legacy.error) {
+    throw new Error(`할 일을 저장하지 못했어: ${legacy.error.message}`);
   }
 
-  return mapTask(data);
+  return mapTask(legacy.data);
 }
 
 export async function updateTaskDetailsRecord(input: {
+  projectId: FormDataEntryValue | string | null | undefined;
   taskId: FormDataEntryValue | string | null | undefined;
   title: FormDataEntryValue | string | null | undefined;
   assignee: FormDataEntryValue | string | null | undefined;
 }) {
+  const projectId = parseProjectId(input.projectId);
   const taskId = typeof input.taskId === "string" ? input.taskId : "";
 
   if (!taskId) {
@@ -120,23 +171,41 @@ export async function updateTaskDetailsRecord(input: {
   const assignee = parseTaskAssignee(input.assignee);
   const supabase = getSupabaseClientOrThrow();
 
-  const { data, error } = await supabase
+  const scoped = await supabase
+    .from("tasks")
+    .update({ title, assignee })
+    .eq("project_id", projectId)
+    .eq("id", taskId)
+    .select("id,title,assignee,status")
+    .single();
+
+  if (!scoped.error) {
+    return mapTask(scoped.data);
+  }
+
+  if (!isProjectScopeUnavailable(scoped.error)) {
+    throw new Error(`작업을 수정하지 못했어: ${scoped.error.message}`);
+  }
+
+  const legacy = await supabase
     .from("tasks")
     .update({ title, assignee })
     .eq("id", taskId)
     .select("id,title,assignee,status")
     .single();
 
-  if (error) {
-    throw new Error(`작업을 수정하지 못했어: ${error.message}`);
+  if (legacy.error) {
+    throw new Error(`작업을 수정하지 못했어: ${legacy.error.message}`);
   }
 
-  return mapTask(data);
+  return mapTask(legacy.data);
 }
 
 export async function deleteTaskRecord(input: {
+  projectId: FormDataEntryValue | string | null | undefined;
   taskId: FormDataEntryValue | string | null | undefined;
 }) {
+  const projectId = parseProjectId(input.projectId);
   const taskId = typeof input.taskId === "string" ? input.taskId : "";
 
   if (!taskId) {
@@ -144,17 +213,29 @@ export async function deleteTaskRecord(input: {
   }
 
   const supabase = getSupabaseClientOrThrow();
-  const { error } = await supabase.from("tasks").delete().eq("id", taskId);
+  const scoped = await supabase.from("tasks").delete().eq("project_id", projectId).eq("id", taskId);
 
-  if (error) {
-    throw new Error(`작업을 삭제하지 못했어: ${error.message}`);
+  if (!scoped.error) {
+    return;
+  }
+
+  if (!isProjectScopeUnavailable(scoped.error)) {
+    throw new Error(`작업을 삭제하지 못했어: ${scoped.error.message}`);
+  }
+
+  const legacy = await supabase.from("tasks").delete().eq("id", taskId);
+
+  if (legacy.error) {
+    throw new Error(`작업을 삭제하지 못했어: ${legacy.error.message}`);
   }
 }
 
 export async function updateTaskStatusRecord(input: {
+  projectId: FormDataEntryValue | string | null | undefined;
   taskId: FormDataEntryValue | string | null | undefined;
   status: FormDataEntryValue | string | null | undefined;
 }) {
+  const projectId = parseProjectId(input.projectId);
   const taskId = typeof input.taskId === "string" ? input.taskId : "";
   const status = parseTaskStatus(input.status);
 
@@ -163,31 +244,62 @@ export async function updateTaskStatusRecord(input: {
   }
 
   const supabase = getSupabaseClientOrThrow();
-  const { data: currentTask, error: currentError } = await supabase
+  const scopedCurrent = await supabase
     .from("tasks")
     .select("id,title,assignee,status")
+    .eq("project_id", projectId)
     .eq("id", taskId)
     .single();
 
-  if (currentError || !currentTask) {
-    throw new Error(`작업을 찾지 못했어: ${currentError?.message ?? taskId}`);
+  let currentTask = scopedCurrent.data;
+  let legacyMode = false;
+
+  if (scopedCurrent.error || !currentTask) {
+    if (!isProjectScopeUnavailable(scopedCurrent.error)) {
+      throw new Error(`작업을 찾지 못했어: ${scopedCurrent.error?.message ?? taskId}`);
+    }
+
+    legacyMode = true;
+    const legacyCurrent = await supabase.from("tasks").select("id,title,assignee,status").eq("id", taskId).single();
+
+    if (legacyCurrent.error || !legacyCurrent.data) {
+      throw new Error(`작업을 찾지 못했어: ${legacyCurrent.error?.message ?? taskId}`);
+    }
+
+    currentTask = legacyCurrent.data;
   }
 
   if (currentTask.status === status) {
     return mapTask(currentTask);
   }
 
-  const position = await getNextPosition(status);
-  const { data, error } = await supabase
+  const position = await getNextPosition(projectId, status);
+  const scopedUpdate = await supabase
+    .from("tasks")
+    .update({ status, position })
+    .eq("project_id", projectId)
+    .eq("id", taskId)
+    .select("id,title,assignee,status")
+    .single();
+
+  if (!legacyMode && !scopedUpdate.error) {
+    return mapTask(scopedUpdate.data);
+  }
+
+  if (!legacyMode && !isProjectScopeUnavailable(scopedUpdate.error)) {
+    throw new Error(`상태를 바꾸지 못했어: ${scopedUpdate.error.message}`);
+  }
+
+  const legacyUpdate = await supabase
     .from("tasks")
     .update({ status, position })
     .eq("id", taskId)
     .select("id,title,assignee,status")
     .single();
 
-  if (error) {
-    throw new Error(`상태를 바꾸지 못했어: ${error.message}`);
+  if (legacyUpdate.error) {
+    throw new Error(`상태를 바꾸지 못했어: ${legacyUpdate.error.message}`);
   }
 
-  return mapTask(data);
+  return mapTask(legacyUpdate.data);
 }

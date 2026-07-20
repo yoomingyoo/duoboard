@@ -5,9 +5,10 @@ type KanbanColumnProps = {
   title: string;
   status: TaskStatus;
   tasks: Task[];
+  projectId: string;
 };
 
-export function KanbanColumn({ title, status, tasks }: KanbanColumnProps) {
+export function KanbanColumn({ title, status, tasks, projectId }: KanbanColumnProps) {
   const filtered = tasks.filter((task) => task.status === status);
 
   return (
@@ -20,7 +21,7 @@ export function KanbanColumn({ title, status, tasks }: KanbanColumnProps) {
         {filtered.length === 0 ? (
           <div className="empty-state">아직 카드가 없어.</div>
         ) : (
-          filtered.map((task) => <TaskCard key={task.id} task={task} />)
+          filtered.map((task) => <TaskCard key={task.id} projectId={projectId} task={task} />)
         )}
       </div>
     </section>

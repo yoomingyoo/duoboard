@@ -5,6 +5,7 @@ import { createRetroRecord, deleteRetroRecord, updateRetroRecord } from "../lib/
 
 export async function createRetroAction(formData: FormData) {
   await createRetroRecord({
+    projectId: formData.get("projectId"),
     author: formData.get("author"),
     weekOf: formData.get("weekOf"),
     good: formData.get("good"),
@@ -17,6 +18,7 @@ export async function createRetroAction(formData: FormData) {
 
 export async function updateRetroAction(formData: FormData) {
   await updateRetroRecord({
+    projectId: formData.get("projectId"),
     retroId: formData.get("retroId"),
     author: formData.get("author"),
     weekOf: formData.get("weekOf"),
@@ -30,6 +32,7 @@ export async function updateRetroAction(formData: FormData) {
 
 export async function deleteRetroAction(formData: FormData) {
   await deleteRetroRecord({
+    projectId: formData.get("projectId"),
     retroId: formData.get("retroId"),
   });
 

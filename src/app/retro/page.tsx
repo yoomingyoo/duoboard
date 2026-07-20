@@ -2,10 +2,17 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { RetroForm } from "@/components/retro/RetroForm";
 import { requireInviteSession } from "@/lib/auth/guard";
 import { getRetros } from "@/lib/data";
+import { resolveCurrentProject } from "@/lib/projects";
 
-export default async function RetroPage() {
+type RetroPageProps = {
+  searchParams?: Promise<{ project?: string }>;
+};
+
+export default async function RetroPage({ searchParams }: RetroPageProps) {
   await requireInviteSession();
-  const { retros, source } = await getRetros();
+  const params = searchParams ? await searchParams : undefined;
+  const { currentProject } = await resolveCurrentProject(params?.project);
+  const { retros, source } = await getRetros(currentProject.id);
 
   return (
     <main className="page-shell">
@@ -17,10 +24,11 @@ export default async function RetroPage() {
 
       <div className="page-toolbar">
         <span className="source-badge">data source: {source}</span>
+        <span className="source-badge">project: {currentProject.name}</span>
       </div>
 
       <div style={{ height: 20 }} />
-      <RetroForm retros={retros} />
+      <RetroForm projectId={currentProject.id} retros={retros} />
     </main>
   );
 }

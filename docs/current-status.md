@@ -53,7 +53,7 @@
 
 ## 현재 단계 요약
 현재는 **초대코드 로그인 + 보드 CRUD + 회고 CRUD + Supabase 연결 + Vercel 배포까지 완료된 첫 MVP 실사용 단계**다.
-Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남은 핵심은 **실사용 피드백 반영과 작은 UX 개선**이다.
+Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남은 핵심은 **실사용 피드백 반영 + 프로젝트 분리 기반 확장 + 작은 UX 개선**이다.
 
 실제 개발 착수 기준으로 이미 완료된 항목:
 - 역할 분담 완료 (혜진: 기획/PM/QA, 민규: 개발)
@@ -69,6 +69,8 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
 - 임시 원격 URL(Pinggy)로 외부 접속 검증 완료
 - Vercel production 배포 및 공개 URL 검증 완료
 - Vercel preview 배포 및 공개 preview 접근 검증 완료
+- `projects` / `project_id` 기반 다중 프로젝트 확장용 코드 구조 반영 완료
+- migration 전 live DB와의 하위 호환(legacy single-project fallback) 동작 검증 완료
 
 ## 현재 확정된 결정
 - 플랫폼: 웹 앱
@@ -87,26 +89,33 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
   - 초대코드 입력 후 세션 발급
 - `/board`
   - 세션 확인 후 진입
-  - 현재 데이터 source 표시 (`sample`, `supabase`, `sample-fallback`)
+  - 현재 데이터 source 표시 (`sample`, `supabase`, `sample-fallback`, `legacy-supabase`)
   - task 생성 / 수정 / 삭제
   - Todo / Doing / Done 상태 변경
+  - 내부적으로 `projectId` 전달 경로 반영 완료
 - `/retro`
   - 세션 확인 후 진입
   - 회고 조회
   - 회고 생성 / 수정 / 삭제
+  - 내부적으로 `projectId` 전달 경로 반영 완료
 - `/api/tasks`
   - GET 보호 API 동작 확인
   - POST / PATCH 기반 task 반영 경로 구현 완료
+  - `projectId` / `project` 파라미터 수용 및 legacy fallback 반영 완료
 - `/api/retros`
   - GET 보호 API 동작 확인
+  - `projectId` / `project` 파라미터 수용 및 legacy fallback 반영 완료
 - Supabase live DB
   - `tasks_assignee_check` 제약 수정 후 `mingyoo`, `hyejin` 모두 정상 반영 확인
+  - 아직 `projects` 테이블과 `tasks.project_id`, `retros.project_id`는 live에 migration 적용 전
 
 ## 최근 중요 이슈 / 주의점
 - 이전 PR에서 `docs/current-status.md`와 `CLAUDE.md`가 실제 구현 상태보다 예전 단계로 되돌아가는 문서 퇴행이 있었음.
 - 따라서 **작업 시작 전에 `docs/current-status.md`를 먼저 확인하는 것**을 기본 협업 규칙으로 둔다.
 - 브라우저가 Supabase에 직접 접근하지 않고, 반드시 **브라우저 → 서버 함수/API → Supabase** 흐름을 유지해야 한다.
 - Supabase repo의 `schema.sql`만 믿지 말고, 실제 hosted 프로젝트의 live constraint도 함께 확인해야 한다.
+- 현재 repo에는 `projects` / `project_id` 기반 schema가 반영되어 있지만, hosted Supabase live DB에는 아직 migration을 적용하지 않았다.
+- 그래서 현재 코드는 live DB에서 우선 **legacy single-project fallback**으로 동작하고, migration 이후 자동으로 project-scoped 모드로 전환되도록 구성했다.
 - Vercel preview는 현재 공개 접근 가능 상태이며, 앱 자체 초대코드 로그인만 거치면 된다.
 - Vercel 프로젝트의 Git 배포 설정은 켜져 있으므로 main 갱신 시 자동 배포가 기본 동작이지만, 예전 커밋 상태 로컬 워킹트리에서 실행한 수동 CLI 배포가 preview / production alias를 덮어쓸 수 있다.
 - 따라서 배포 이슈를 막기 위해 **production은 기본적으로 GitHub main 기준 자동 배포를 사용하고**, 수동 `vercel deploy` / `vercel deploy --prod`는 긴급 재배포나 확인이 꼭 필요할 때만 사용한다.
@@ -144,6 +153,9 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
 
 ### 남은 것
 - [ ] 동료와 preview 기준 원격 검수 후 UX 피드백 반영
+- [ ] Supabase live DB에 `projects` / `project_id` migration 실제 적용
+- [ ] 프로젝트 선택 UI / 프로젝트 생성 UI 설계 및 구현
+- [ ] 동료에게 프로젝트 선택/전환/생성 UI 작업 범위 전달
 - [ ] 필요 시 현재 문서 구조를 실제 구현 상태 기준으로 추가 정리
 
 ## 참고

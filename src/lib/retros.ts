@@ -1,3 +1,4 @@
+import { isProjectScopeUnavailable } from "./project-scope";
 import type { Retro } from "./sample-data";
 import { createSupabaseServerClient } from "./supabase/server";
 
@@ -23,7 +24,6 @@ function mapRetro(row: {
   } satisfies Retro;
 }
 
-// Supabase generic 타입을 최소 정의만 써서 mutation query 추론이 불안정하므로 여기서는 client를 느슨하게 다룬다.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getSupabaseClientOrThrow(): any {
   const supabase = createSupabaseServerClient();
@@ -32,6 +32,16 @@ function getSupabaseClientOrThrow(): any {
   }
 
   return supabase;
+}
+
+function parseProjectId(value: FormDataEntryValue | string | null | undefined) {
+  const projectId = typeof value === "string" ? value.trim() : "";
+
+  if (!projectId) {
+    throw new Error("프로젝트 ID가 없어.");
+  }
+
+  return projectId;
 }
 
 function parseAuthor(value: FormDataEntryValue | string | null | undefined): RetroAuthor {
@@ -63,12 +73,14 @@ function parseRequiredText(value: FormDataEntryValue | string | null | undefined
 }
 
 export async function createRetroRecord(input: {
+  projectId: FormDataEntryValue | string | null | undefined;
   author: FormDataEntryValue | string | null | undefined;
   weekOf: FormDataEntryValue | string | null | undefined;
   good: FormDataEntryValue | string | null | undefined;
   bad: FormDataEntryValue | string | null | undefined;
   nextAction: FormDataEntryValue | string | null | undefined;
 }) {
+  const projectId = parseProjectId(input.projectId);
   const author = parseAuthor(input.author);
   const weekOf = parseWeekOf(input.weekOf);
   const good = parseRequiredText(input.good, "잘한 점");
@@ -77,7 +89,32 @@ export async function createRetroRecord(input: {
 
   const supabase = getSupabaseClientOrThrow();
 
-  const { data, error } = await supabase
+  const scoped = await supabase
+    .from("retros")
+    .insert({
+      project_id: projectId,
+      author,
+      week_of: weekOf,
+      good,
+      bad,
+      next_action: nextAction,
+    })
+    .select("id,author,week_of,good,bad,next_action")
+    .single();
+
+  if (!scoped.error) {
+    return mapRetro(scoped.data);
+  }
+
+  if (!isProjectScopeUnavailable(scoped.error)) {
+    if (scoped.error.code === "23505") {
+      throw new Error("이미 이 주차에 작성한 회고가 있어.");
+    }
+
+    throw new Error(`회고를 저장하지 못했어: ${scoped.error.message}`);
+  }
+
+  const legacy = await supabase
     .from("retros")
     .insert({
       author,
@@ -89,15 +126,15 @@ export async function createRetroRecord(input: {
     .select("id,author,week_of,good,bad,next_action")
     .single();
 
-  if (error) {
-    if (error.code === "23505") {
+  if (legacy.error) {
+    if (legacy.error.code === "23505") {
       throw new Error("이미 이 주차에 작성한 회고가 있어.");
     }
 
-    throw new Error(`회고를 저장하지 못했어: ${error.message}`);
+    throw new Error(`회고를 저장하지 못했어: ${legacy.error.message}`);
   }
 
-  return mapRetro(data);
+  return mapRetro(legacy.data);
 }
 
 function parseRetroId(value: FormDataEntryValue | string | null | undefined) {
@@ -111,6 +148,7 @@ function parseRetroId(value: FormDataEntryValue | string | null | undefined) {
 }
 
 export async function updateRetroRecord(input: {
+  projectId: FormDataEntryValue | string | null | undefined;
   retroId: FormDataEntryValue | string | null | undefined;
   author: FormDataEntryValue | string | null | undefined;
   weekOf: FormDataEntryValue | string | null | undefined;
@@ -118,6 +156,7 @@ export async function updateRetroRecord(input: {
   bad: FormDataEntryValue | string | null | undefined;
   nextAction: FormDataEntryValue | string | null | undefined;
 }) {
+  const projectId = parseProjectId(input.projectId);
   const retroId = parseRetroId(input.retroId);
   const author = parseAuthor(input.author);
   const weekOf = parseWeekOf(input.weekOf);
@@ -127,7 +166,33 @@ export async function updateRetroRecord(input: {
 
   const supabase = getSupabaseClientOrThrow();
 
-  const { data, error } = await supabase
+  const scoped = await supabase
+    .from("retros")
+    .update({
+      author,
+      week_of: weekOf,
+      good,
+      bad,
+      next_action: nextAction,
+    })
+    .eq("project_id", projectId)
+    .eq("id", retroId)
+    .select("id,author,week_of,good,bad,next_action")
+    .single();
+
+  if (!scoped.error) {
+    return mapRetro(scoped.data);
+  }
+
+  if (!isProjectScopeUnavailable(scoped.error)) {
+    if (scoped.error.code === "23505") {
+      throw new Error("이미 이 주차에 작성한 회고가 있어.");
+    }
+
+    throw new Error(`회고를 수정하지 못했어: ${scoped.error.message}`);
+  }
+
+  const legacy = await supabase
     .from("retros")
     .update({
       author,
@@ -140,26 +205,38 @@ export async function updateRetroRecord(input: {
     .select("id,author,week_of,good,bad,next_action")
     .single();
 
-  if (error) {
-    if (error.code === "23505") {
+  if (legacy.error) {
+    if (legacy.error.code === "23505") {
       throw new Error("이미 이 주차에 작성한 회고가 있어.");
     }
 
-    throw new Error(`회고를 수정하지 못했어: ${error.message}`);
+    throw new Error(`회고를 수정하지 못했어: ${legacy.error.message}`);
   }
 
-  return mapRetro(data);
+  return mapRetro(legacy.data);
 }
 
 export async function deleteRetroRecord(input: {
+  projectId: FormDataEntryValue | string | null | undefined;
   retroId: FormDataEntryValue | string | null | undefined;
 }) {
+  const projectId = parseProjectId(input.projectId);
   const retroId = parseRetroId(input.retroId);
   const supabase = getSupabaseClientOrThrow();
 
-  const { error } = await supabase.from("retros").delete().eq("id", retroId);
+  const scoped = await supabase.from("retros").delete().eq("project_id", projectId).eq("id", retroId);
 
-  if (error) {
-    throw new Error(`회고를 삭제하지 못했어: ${error.message}`);
+  if (!scoped.error) {
+    return;
+  }
+
+  if (!isProjectScopeUnavailable(scoped.error)) {
+    throw new Error(`회고를 삭제하지 못했어: ${scoped.error.message}`);
+  }
+
+  const legacy = await supabase.from("retros").delete().eq("id", retroId);
+
+  if (legacy.error) {
+    throw new Error(`회고를 삭제하지 못했어: ${legacy.error.message}`);
   }
 }

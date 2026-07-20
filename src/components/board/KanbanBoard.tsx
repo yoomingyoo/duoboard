@@ -4,17 +4,18 @@ import { KanbanColumn } from "./KanbanColumn";
 
 type KanbanBoardProps = {
   tasks: Task[];
+  projectId: string;
 };
 
-export function KanbanBoard({ tasks }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, projectId }: KanbanBoardProps) {
   return (
     <div className="board-layout">
-      <AddTaskForm />
+      <AddTaskForm projectId={projectId} />
 
       <div className="kanban-grid">
-        <KanbanColumn title="Todo" status="todo" tasks={tasks} />
-        <KanbanColumn title="Doing" status="doing" tasks={tasks} />
-        <KanbanColumn title="Done" status="done" tasks={tasks} />
+        <KanbanColumn projectId={projectId} title="Todo" status="todo" tasks={tasks} />
+        <KanbanColumn projectId={projectId} title="Doing" status="doing" tasks={tasks} />
+        <KanbanColumn projectId={projectId} title="Done" status="done" tasks={tasks} />
       </div>
     </div>
   );
