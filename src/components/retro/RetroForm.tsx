@@ -27,9 +27,9 @@ function RetroItem({ retro }: { retro: Retro }) {
         <strong>{authorLabel[retro.author]}</strong>
         <span>{retro.weekOf}</span>
       </div>
-      <p><b>Good</b> {retro.good}</p>
-      <p><b>Bad</b> {retro.bad}</p>
-      <p><b>Next</b> {retro.nextAction}</p>
+      <p className="retro-item__row retro-item__row--good"><b>Good</b> {retro.good}</p>
+      <p className="retro-item__row retro-item__row--bad"><b>Bad</b> {retro.bad}</p>
+      <p className="retro-item__row retro-item__row--next"><b>Next</b> {retro.nextAction}</p>
 
       <div className="item-actions">
         <details className="inline-disclosure">

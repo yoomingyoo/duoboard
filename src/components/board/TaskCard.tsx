@@ -21,7 +21,9 @@ export function TaskCard({ task }: TaskCardProps) {
   return (
     <article className="task-card">
       <div className="task-card__meta">
-        <span className="task-card__badge">{assigneeLabel[task.assignee]}</span>
+        <span className={`task-card__badge task-card__badge--${task.assignee}`}>
+          {assigneeLabel[task.assignee]}
+        </span>
       </div>
       <strong>{task.title}</strong>
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { InviteCodeForm } from "@/components/auth/InviteCodeForm";
+import { Logo } from "@/components/common/Logo";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE, verifySignedSessionValue } from "@/lib/auth/session";
@@ -27,6 +28,9 @@ export default async function LoginPage() {
       </header>
 
       <section className="login-card">
+        <div className="login-card__brand">
+          <Logo size={40} />
+        </div>
         <p className="muted">
           초대코드를 확인하면 HttpOnly 세션 쿠키를 발급하고, 이후 보드와 회고 화면은 해당 세션이 있어야 접근할 수 있게 구성합니다.
         </p>
