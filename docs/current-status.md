@@ -52,8 +52,8 @@
   - AI 코딩 에이전트용 프로젝트 운영 규칙과 실제 구조 요약
 
 ## 현재 단계 요약
-현재는 **초대코드 로그인 + 보드 CRUD + 회고 CRUD + Supabase 연결까지 붙은 첫 MVP 체험판 상태**다.
-임시 원격 터널로 외부 접속까지 확인했고, 이제 남은 핵심은 **Vercel 기준의 안정적인 배포/공유와 실사용 피드백 반영**이다.
+현재는 **초대코드 로그인 + 보드 CRUD + 회고 CRUD + Supabase 연결 + Vercel 배포까지 완료된 첫 MVP 실사용 단계**다.
+Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남은 핵심은 **실사용 피드백 반영과 작은 UX 개선**이다.
 
 실제 개발 착수 기준으로 이미 완료된 항목:
 - 역할 분담 완료 (혜진: 기획/PM/QA, 민규: 개발)
@@ -66,7 +66,9 @@
 - Supabase server-only 연결 및 `tasks`, `retros` 테이블 확인 완료
 - task 생성 / 수정 / 삭제 / 상태 변경 구현 완료
 - retro 생성 / 수정 / 삭제 구현 완료
-- 임시 원격 URL(Pinggy)로 외부 접속 확인 완료
+- 임시 원격 URL(Pinggy)로 외부 접속 검증 완료
+- Vercel production 배포 및 공개 URL 검증 완료
+- Vercel preview 배포 및 공개 preview 접근 검증 완료
 
 ## 현재 확정된 결정
 - 플랫폼: 웹 앱
@@ -105,6 +107,7 @@
 - 따라서 **작업 시작 전에 `docs/current-status.md`를 먼저 확인하는 것**을 기본 협업 규칙으로 둔다.
 - 브라우저가 Supabase에 직접 접근하지 않고, 반드시 **브라우저 → 서버 함수/API → Supabase** 흐름을 유지해야 한다.
 - Supabase repo의 `schema.sql`만 믿지 말고, 실제 hosted 프로젝트의 live constraint도 함께 확인해야 한다.
+- Vercel preview는 현재 공개 접근 가능 상태이며, 앱 자체 초대코드 로그인만 거치면 된다.
 
 ## 이 프로젝트에서 중요하게 보는 점
 - 기능을 많이 넣는 것보다 실제로 끝까지 출시하는 것
@@ -133,11 +136,12 @@
 - [x] task CRUD + 상태 변경 구현
 - [x] retro CRUD 구현
 - [x] 임시 원격 URL로 외부 접속 검증
+- [x] Vercel production 배포 및 로그인/보드 진입 검증
+- [x] Vercel preview 배포 및 공개 접근 검증
 
 ### 남은 것
-- [ ] Vercel preview / production 배포
-- [ ] 배포 환경변수 정리 및 재검증
-- [ ] 동료와 원격 검수 후 UX 피드백 반영
+- [ ] 동료와 preview 기준 원격 검수 후 UX 피드백 반영
+- [ ] preview / production 운영 규칙을 README 또는 관련 문서에 짧게 반영
 - [ ] 필요 시 현재 문서 구조를 실제 구현 상태 기준으로 추가 정리
 
 ## 참고

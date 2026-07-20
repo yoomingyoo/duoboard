@@ -12,12 +12,38 @@ const authorLabel = {
 };
 
 function getCurrentWeekMonday() {
-  const now = new Date();
-  const day = now.getDay();
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    weekday: "short",
+  }).formatToParts(new Date());
+
+  const values = Object.fromEntries(
+    parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]),
+  );
+
+  const weekdayMap: Record<string, number> = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+  };
+
+  const day = weekdayMap[values.weekday];
   const diffToMonday = day === 0 ? -6 : 1 - day;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() + diffToMonday);
-  return monday.toISOString().slice(0, 10);
+  const monday = new Date(Date.UTC(Number(values.year), Number(values.month) - 1, Number(values.day)));
+  monday.setUTCDate(monday.getUTCDate() + diffToMonday);
+
+  const year = monday.getUTCFullYear();
+  const month = String(monday.getUTCMonth() + 1).padStart(2, "0");
+  const date = String(monday.getUTCDate()).padStart(2, "0");
+
+  return `${year}-${month}-${date}`;
 }
 
 function RetroItem({ retro }: { retro: Retro }) {
