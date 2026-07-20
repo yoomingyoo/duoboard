@@ -108,6 +108,9 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
 - 브라우저가 Supabase에 직접 접근하지 않고, 반드시 **브라우저 → 서버 함수/API → Supabase** 흐름을 유지해야 한다.
 - Supabase repo의 `schema.sql`만 믿지 말고, 실제 hosted 프로젝트의 live constraint도 함께 확인해야 한다.
 - Vercel preview는 현재 공개 접근 가능 상태이며, 앱 자체 초대코드 로그인만 거치면 된다.
+- Vercel 프로젝트의 Git 배포 설정은 켜져 있으므로 main 갱신 시 자동 배포가 기본 동작이지만, 예전 커밋 상태 로컬 워킹트리에서 실행한 수동 CLI 배포가 preview / production alias를 덮어쓸 수 있다.
+- 따라서 배포 이슈를 막기 위해 **production은 기본적으로 GitHub main 기준 자동 배포를 사용하고**, 수동 `vercel deploy` / `vercel deploy --prod`는 긴급 재배포나 확인이 꼭 필요할 때만 사용한다.
+- 수동 배포가 필요하면 항상 먼저 `git fetch` + `git pull --ff-only origin main`으로 최신 상태를 맞추고, 배포 후에는 실제 URL 로그인 화면/보드 화면까지 확인한다.
 
 ## 이 프로젝트에서 중요하게 보는 점
 - 기능을 많이 넣는 것보다 실제로 끝까지 출시하는 것
@@ -141,7 +144,6 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
 
 ### 남은 것
 - [ ] 동료와 preview 기준 원격 검수 후 UX 피드백 반영
-- [ ] preview / production 운영 규칙을 README 또는 관련 문서에 짧게 반영
 - [ ] 필요 시 현재 문서 구조를 실제 구현 상태 기준으로 추가 정리
 
 ## 참고

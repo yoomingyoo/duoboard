@@ -21,3 +21,8 @@
 - [ ] 버그/피드백 수집
 - [ ] 1차 수정 배포
 - [ ] 짧은 회고 작성
+
+## 배포 운영 메모
+- [x] main 갱신 시 Vercel production 자동 배포를 기본 경로로 사용
+- [x] 수동 `vercel deploy` / `vercel deploy --prod` 전에는 반드시 `fetch/pull`로 최신 main 동기화 확인
+- [x] 수동 배포 후에는 실제 preview / production URL에서 로그인 후 UI까지 확인
