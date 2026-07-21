@@ -51,7 +51,9 @@ function RetroItem({ projectId, retro }: { projectId: string; retro: Retro }) {
   return (
     <article className="retro-item">
       <div className="retro-item__meta">
-        <strong>{authorLabel[retro.author]}</strong>
+        <span className={`retro-item__author retro-item__author--${retro.author}`}>
+          {authorLabel[retro.author]}
+        </span>
         <span>{retro.weekOf}</span>
       </div>
       <p className="retro-item__row retro-item__row--good"><b>Good</b> {retro.good}</p>

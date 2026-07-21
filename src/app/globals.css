@@ -40,8 +40,8 @@
   /* 담당자 구분 (톤 다운, 상태/포인트 컬러와 별개) */
   --assignee-mingyoo: #8fa3d9;
   --assignee-mingyoo-bg: rgba(143, 163, 217, 0.14);
-  --assignee-hyejin: #a3a3ad;
-  --assignee-hyejin-bg: rgba(163, 163, 173, 0.14);
+  --assignee-hyejin: #9884c2;
+  --assignee-hyejin-bg: rgba(152, 132, 194, 0.14);
 
   --shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
 }
@@ -406,7 +406,48 @@ textarea {
   border-radius: 999px;
 }
 
+.project-pill-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-pill-row--dragging {
+  opacity: 0.6;
+}
+
+.project-drag-handle {
+  flex-shrink: 0;
+  width: 28px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  color: var(--fg-dim);
+  touch-action: none;
+  cursor: grab;
+}
+
+.project-drag-handle:hover:not(:disabled) {
+  color: var(--fg-secondary);
+  background: var(--surface-strong);
+}
+
+.project-drag-handle:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.project-drag-handle--placeholder {
+  cursor: default;
+}
+
 .project-pill {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -414,6 +455,7 @@ textarea {
   padding: 12px 14px;
   border-radius: 14px;
   border: 1px solid var(--border);
+  border-left: 3px solid var(--pill-color, transparent);
   background: rgba(255, 255, 255, 0.03);
   color: var(--fg-secondary);
   transition: border-color 0.15s ease, background-color 0.15s ease;
@@ -421,11 +463,13 @@ textarea {
 
 .project-pill:hover {
   border-color: var(--accent-border);
+  border-left-color: var(--pill-color, var(--accent-border));
   background: var(--surface-strong);
 }
 
 .project-pill--active {
   border-color: var(--accent-border);
+  border-left-color: var(--pill-color, var(--accent-border));
   background: var(--accent-soft);
   color: var(--fg);
 }
@@ -434,6 +478,136 @@ textarea {
   color: var(--fg-dim);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+.project-pill--editing {
+  display: grid;
+  gap: 6px;
+}
+
+.project-pill__edit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-pill__edit-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  padding: 0;
+}
+
+.project-pill__edit-input:focus {
+  outline: none;
+}
+
+.project-pill__edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.project-pill__edit-error {
+  font-size: 13px;
+}
+
+.pill-icon-button {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-strong);
+  color: var(--fg-secondary);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.pill-icon-button:hover:not(:disabled) {
+  border-color: var(--accent-border);
+  color: var(--fg);
+}
+
+.pill-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.pill-menu__trigger {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--fg-muted);
+  cursor: pointer;
+  list-style: none;
+}
+
+.pill-menu__trigger::-webkit-details-marker {
+  display: none;
+}
+
+.pill-menu__trigger:hover {
+  border-color: var(--accent-border);
+  background: var(--surface-strong);
+  color: var(--fg);
+}
+
+.pill-menu[open] > .pill-menu__trigger {
+  border-color: var(--accent-border);
+  background: var(--surface-strong);
+  color: var(--fg);
+}
+
+.pill-menu__list {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 10;
+  display: grid;
+  min-width: 120px;
+  padding: 6px;
+  gap: 2px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+
+.pill-menu__item {
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  color: var(--fg-secondary);
+  font-size: 14px;
+}
+
+.pill-menu__item:hover:not(:disabled) {
+  background: var(--surface-strong);
+  color: var(--fg);
+}
+
+.pill-menu__item--danger {
+  color: var(--danger-muted);
+}
+
+.pill-menu__item--danger:hover:not(:disabled) {
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .project-create-form,
@@ -691,6 +865,29 @@ textarea {
   justify-content: space-between;
   gap: 12px;
   color: var(--fg-muted);
+}
+
+.retro-item__author {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-strong);
+  border: 1px solid var(--border-soft);
+  color: var(--fg-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.retro-item__author--mingyoo {
+  background: var(--assignee-mingyoo-bg);
+  border-color: var(--assignee-mingyoo);
+  color: var(--assignee-mingyoo);
+}
+
+.retro-item__author--hyejin {
+  background: var(--assignee-hyejin-bg);
+  border-color: var(--assignee-hyejin);
+  color: var(--assignee-hyejin);
 }
 
 .retro-item strong {

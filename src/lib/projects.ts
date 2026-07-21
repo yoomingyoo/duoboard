@@ -1,4 +1,4 @@
-import { isProjectScopeUnavailable } from "@/lib/project-scope";
+import { isProjectPositionUnavailable, isProjectScopeUnavailable } from "@/lib/project-scope";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type Project = {
@@ -94,6 +94,58 @@ async function createUniqueSlug(name: string) {
   return `${baseSlug}-${suffix}`;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getNextProjectPosition(supabase: any): Promise<number | null> {
+  const { data, error } = await supabase
+    .from("projects")
+    .select("position")
+    .eq("is_default", false)
+    .order("position", { ascending: false })
+    .limit(1);
+
+  if (error) {
+    if (isProjectPositionUnavailable(error)) {
+      return null;
+    }
+
+    throw new Error(`프로젝트 순서를 확인하지 못했어: ${error.message}`);
+  }
+
+  const rows = (data ?? []) as Array<{ position: number | null }>;
+  const maxPosition = rows[0]?.position ?? -1;
+  return maxPosition + 1;
+}
+
+export async function reorderProjectsRecord(orderedIds: string[]) {
+  const ids = orderedIds.filter((id) => typeof id === "string" && id.trim().length > 0);
+  const supabase = getSupabaseClientOrNull();
+
+  if (!supabase) {
+    throw new Error("Supabase 환경이 없어서 프로젝트 순서를 바꿀 수 없어.");
+  }
+
+  if (ids.length === 0) {
+    return;
+  }
+
+  const results = await Promise.all(
+    ids.map((id: string, index: number) =>
+      supabase.from("projects").update({ position: index }).eq("id", id).eq("is_default", false),
+    ),
+  );
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const failed = results.find((result: any) => result.error);
+
+  if (failed?.error) {
+    if (isProjectPositionUnavailable(failed.error)) {
+      throw new Error("프로젝트 순서 변경은 DB migration 적용 후 사용할 수 있어.");
+    }
+
+    throw new Error(`프로젝트 순서를 바꾸지 못했어: ${failed.error.message}`);
+  }
+}
+
 export async function getProjects(): Promise<{ projects: Project[]; source: ProjectSource }> {
   const supabase = getSupabaseClientOrNull();
 
@@ -101,11 +153,20 @@ export async function getProjects(): Promise<{ projects: Project[]; source: Proj
     return { projects: [SAMPLE_PROJECT], source: "sample" };
   }
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("projects")
     .select("id,name,slug,is_default")
     .order("is_default", { ascending: false })
+    .order("position", { ascending: true })
     .order("created_at", { ascending: true });
+
+  if (error && isProjectPositionUnavailable(error)) {
+    ({ data, error } = await supabase
+      .from("projects")
+      .select("id,name,slug,is_default")
+      .order("is_default", { ascending: false })
+      .order("created_at", { ascending: true }));
+  }
 
   if (error) {
     if (isProjectScopeUnavailable(error)) {
@@ -156,13 +217,16 @@ export async function createProjectRecord(input: {
     throw new Error("Supabase 환경이 없어서 프로젝트를 만들 수 없어.");
   }
 
+  const insertPayload: Record<string, unknown> = { name, slug, is_default: false };
+  const nextPosition = await getNextProjectPosition(supabase);
+
+  if (nextPosition !== null) {
+    insertPayload.position = nextPosition;
+  }
+
   const { data, error } = await supabase
     .from("projects")
-    .insert({
-      name,
-      slug,
-      is_default: false,
-    })
+    .insert(insertPayload)
     .select("id,name,slug,is_default")
     .single();
 
@@ -175,6 +239,45 @@ export async function createProjectRecord(input: {
   }
 
   return mapProject(data);
+}
+
+export async function deleteProjectRecord(input: {
+  projectId: FormDataEntryValue | string | null | undefined;
+}) {
+  const projectId = typeof input.projectId === "string" ? input.projectId.trim() : "";
+  const supabase = getSupabaseClientOrNull();
+
+  if (!projectId) {
+    throw new Error("삭제할 프로젝트 ID가 없어.");
+  }
+
+  if (!supabase) {
+    throw new Error("Supabase 환경이 없어서 프로젝트를 삭제할 수 없어.");
+  }
+
+  const { data: target, error: fetchError } = await supabase
+    .from("projects")
+    .select("id,is_default")
+    .eq("id", projectId)
+    .single();
+
+  if (fetchError) {
+    if (isProjectScopeUnavailable(fetchError)) {
+      throw new Error("프로젝트 삭제는 DB migration 적용 후 사용할 수 있어.");
+    }
+
+    throw new Error(`삭제할 프로젝트를 찾지 못했어: ${fetchError.message}`);
+  }
+
+  if (target?.is_default) {
+    throw new Error("기본 프로젝트는 삭제할 수 없어.");
+  }
+
+  const { error } = await supabase.from("projects").delete().eq("id", projectId);
+
+  if (error) {
+    throw new Error(`프로젝트를 삭제하지 못했어: ${error.message}`);
+  }
 }
 
 export async function updateProjectNameRecord(input: {
