@@ -348,6 +348,12 @@ textarea {
   grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
 }
 
+.board-sidebar {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
 .retro-page-layout {
   display: grid;
   grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
@@ -764,6 +770,10 @@ textarea {
 
 @media (max-width: 900px) {
   .board-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .board-sidebar {
     grid-template-columns: 1fr;
   }
 

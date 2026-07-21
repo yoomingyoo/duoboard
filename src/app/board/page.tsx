@@ -1,3 +1,4 @@
+import { AddTaskForm } from "@/components/board/AddTaskForm";
 import { KanbanBoard } from "@/components/board/KanbanBoard";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ProjectSwitcher } from "@/components/projects/ProjectSwitcher";
@@ -36,12 +37,15 @@ export default async function BoardPage({ searchParams }: BoardPageProps) {
 
       <div style={{ height: 20 }} />
       <div className="board-layout board-layout--with-projects">
-        <ProjectSwitcher
-          currentPath="/board"
-          currentProjectSlug={currentProject.slug}
-          projects={projects}
-          source={projectSource}
-        />
+        <div className="board-sidebar">
+          <ProjectSwitcher
+            currentPath="/board"
+            currentProjectSlug={currentProject.slug}
+            projects={projects}
+            source={projectSource}
+          />
+          <AddTaskForm projectId={currentProject.id} />
+        </div>
         <KanbanBoard projectId={currentProject.id} tasks={tasks} />
       </div>
 
