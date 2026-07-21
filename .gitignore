@@ -41,6 +41,9 @@ yarn-error.log*
 # Vercel
 .vercel
 
+# Supabase local link/cache
+supabase/.temp/
+
 # Playwright MCP local test artifacts
 .playwright-mcp/
 .env*
