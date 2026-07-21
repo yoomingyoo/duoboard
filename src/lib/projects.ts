@@ -176,3 +176,37 @@ export async function createProjectRecord(input: {
 
   return mapProject(data);
 }
+
+export async function updateProjectNameRecord(input: {
+  projectId: FormDataEntryValue | string | null | undefined;
+  name: FormDataEntryValue | string | null | undefined;
+}) {
+  const projectId = typeof input.projectId === "string" ? input.projectId.trim() : "";
+  const name = normalizeProjectName(input.name);
+  const supabase = getSupabaseClientOrNull();
+
+  if (!projectId) {
+    throw new Error("이름을 바꿀 프로젝트 ID가 없어.");
+  }
+
+  if (!supabase) {
+    throw new Error("Supabase 환경이 없어서 프로젝트 이름을 바꿀 수 없어.");
+  }
+
+  const { data, error } = await supabase
+    .from("projects")
+    .update({ name })
+    .eq("id", projectId)
+    .select("id,name,slug,is_default")
+    .single();
+
+  if (error) {
+    if (isProjectScopeUnavailable(error)) {
+      throw new Error("프로젝트 이름 수정은 DB migration 적용 후 사용할 수 있어.");
+    }
+
+    throw new Error(`프로젝트 이름을 바꾸지 못했어: ${error.message}`);
+  }
+
+  return mapProject(data);
+}

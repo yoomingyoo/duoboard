@@ -95,6 +95,7 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
   - Todo / Doing / Done 상태 변경
   - 내부적으로 `projectId` 전달 경로 반영 완료
   - 프로젝트 전환 UI 반영 완료 (`?project=<slug>`)
+  - 현재 프로젝트 이름 수정 UI 반영 완료
 - `/retro`
   - 세션 확인 후 진입
   - 회고 조회
@@ -112,6 +113,7 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
   - `tasks_assignee_check` 제약 수정 후 `mingyoo`, `hyejin` 모두 정상 반영 확인
   - `projects` 테이블 및 `tasks.project_id`, `retros.project_id` migration 적용 완료
   - 기존 task / retro 데이터가 기본 프로젝트(`default`)에 정상 연결된 것 확인
+  - 프로젝트 이름 수정(name only, slug 유지) 경로 확인 완료
 
 ## 최근 중요 이슈 / 주의점
 - 이전 PR에서 `docs/current-status.md`와 `CLAUDE.md`가 실제 구현 상태보다 예전 단계로 되돌아가는 문서 퇴행이 있었음.

@@ -1,18 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createProjectRecord } from "@/lib/projects";
+import { createProjectRecord, updateProjectNameRecord } from "@/lib/projects";
 
-export type ProjectCreateState = {
+export type ProjectState = {
   error?: string;
   createdProjectName?: string;
   createdProjectSlug?: string;
+  renamedProjectName?: string;
 };
 
-export async function createProjectAction(
-  _prevState: ProjectCreateState,
-  formData: FormData,
-): Promise<ProjectCreateState> {
+export async function createProjectAction(_prevState: ProjectState, formData: FormData): Promise<ProjectState> {
   try {
     const project = await createProjectRecord({
       name: formData.get("name"),
@@ -28,6 +26,26 @@ export async function createProjectAction(
   } catch (error) {
     return {
       error: error instanceof Error ? error.message : "프로젝트를 만들지 못했어.",
+    };
+  }
+}
+
+export async function renameProjectAction(_prevState: ProjectState, formData: FormData): Promise<ProjectState> {
+  try {
+    const project = await updateProjectNameRecord({
+      projectId: formData.get("projectId"),
+      name: formData.get("name"),
+    });
+
+    revalidatePath("/board");
+    revalidatePath("/retro");
+
+    return {
+      renamedProjectName: project.name,
+    };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message : "프로젝트 이름을 바꾸지 못했어.",
     };
   }
 }

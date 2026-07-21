@@ -391,6 +391,21 @@ textarea {
   gap: 10px;
 }
 
+.project-switcher__list-wrap {
+  max-height: min(42vh, 320px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.project-switcher__list-wrap::-webkit-scrollbar {
+  width: 8px;
+}
+
+.project-switcher__list-wrap::-webkit-scrollbar-thumb {
+  background: var(--border-soft);
+  border-radius: 999px;
+}
+
 .project-pill {
   display: flex;
   align-items: center;
@@ -421,12 +436,14 @@ textarea {
   letter-spacing: 0.06em;
 }
 
-.project-create-form {
+.project-create-form,
+.project-rename-form {
   display: grid;
   gap: 12px;
 }
 
-.project-create-form label {
+.project-create-form label,
+.project-rename-form label {
   display: grid;
   gap: 8px;
   color: var(--fg-secondary);
