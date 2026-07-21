@@ -24,11 +24,6 @@ export default async function BoardPage({ searchParams }: BoardPageProps) {
         title="duoboard 작업 보드"
       />
 
-      <p className="lead">
-        첫 MVP에서는 카드 생성과 상태 변경이 실제 데이터에 반영되는 흐름을 먼저 완성하고,
-        정교한 정렬/드래그앤드롭은 다음 단계로 미룹니다.
-      </p>
-
       <div className="page-toolbar">
         <span className="source-badge">data source: {source}</span>
         <span className="source-badge">project source: {projectSource}</span>
@@ -47,11 +42,6 @@ export default async function BoardPage({ searchParams }: BoardPageProps) {
           <AddTaskForm projectId={currentProject.id} />
         </div>
         <KanbanBoard projectId={currentProject.id} tasks={tasks} />
-      </div>
-
-      <div className="status-note">
-        현재는 {source === "supabase" ? "Supabase에서" : "fallback 포함 경로로"} 보드를 불러오고 있어.
-        프로젝트 전환 UI는 먼저 붙였고, live migration이 적용되면 여러 프로젝트가 실제로 분리된다.
       </div>
     </main>
   );
