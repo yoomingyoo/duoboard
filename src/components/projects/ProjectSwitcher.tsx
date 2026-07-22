@@ -120,21 +120,20 @@ export function ProjectSwitcher({
     if (!draggingId) return;
     setDraggingId(null);
 
-    setOrderedIds((current) => {
-      const orderChanged =
-        current.length !== dragStartOrderRef.current.length ||
-        current.some((id, i) => id !== dragStartOrderRef.current[i]);
+    const currentOrder = orderedIds;
+    const orderChanged =
+      currentOrder.length !== dragStartOrderRef.current.length ||
+      currentOrder.some((id, i) => id !== dragStartOrderRef.current[i]);
 
-      if (orderChanged) {
-        setReorderError(null);
-        reorderProjectsAction(current).then((result) => {
-          if (result.error) {
-            setReorderError(result.error);
-          }
-        });
+    if (!orderChanged) {
+      return;
+    }
+
+    setReorderError(null);
+    void reorderProjectsAction(currentOrder).then((result) => {
+      if (result.error) {
+        setReorderError(result.error);
       }
-
-      return current;
     });
   }
 
