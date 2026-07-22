@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useOptimistic, useRef, useState, useTransition } from "react";
 import {
   createProjectAction,
   deleteProjectAction,
@@ -41,8 +41,8 @@ export function ProjectSwitcher({
   const [createState, createAction, createPending] = useActionState(createProjectAction, initialState);
   const [renameState, renameAction, renamePending] = useActionState(renameProjectAction, initialState);
   const [deleteState, deleteAction, deletePending] = useActionState(deleteProjectAction, initialState);
+  const [isReorderPending, startReorderTransition] = useTransition();
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [lastRenameState, setLastRenameState] = useState(renameState);
   const [reorderError, setReorderError] = useState<string | null>(null);
   const canManageProjects = source === "supabase";
 
@@ -50,24 +50,24 @@ export function ProjectSwitcher({
   const sortableProjects = projects.filter((project) => !project.isDefault);
   const projectsById = new Map(projects.map((project) => [project.id, project]));
 
-  const [orderedIds, setOrderedIds] = useState(() => sortableProjects.map((project) => project.id));
-  const [lastProjects, setLastProjects] = useState(projects);
-
-  if (projects !== lastProjects) {
-    setLastProjects(projects);
-    setOrderedIds(sortableProjects.map((project) => project.id));
-  }
-
-  if (renameState !== lastRenameState) {
-    setLastRenameState(renameState);
-    if (renameState.renamedProjectName) {
-      setEditingId(null);
-    }
-  }
+  const sortableProjectIds = sortableProjects.map((project) => project.id);
+  const [orderedIds, setOptimisticOrderedIds] = useOptimistic(
+    sortableProjectIds,
+    (_current, nextOrder: string[]) => nextOrder,
+  );
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const rowRefs = useRef(new Map<string, HTMLDivElement>());
   const dragStartOrderRef = useRef<string[]>([]);
+  const currentOrderRef = useRef<string[]>(sortableProjectIds);
+
+  if (renameState.renamedProjectName && editingId !== null) {
+    setEditingId(null);
+  }
+
+  useEffect(() => {
+    currentOrderRef.current = orderedIds;
+  }, [orderedIds]);
 
   useEffect(() => {
     function closeMenusOnOutsideClick(event: MouseEvent) {
@@ -83,31 +83,36 @@ export function ProjectSwitcher({
   }, []);
 
   function reorderAroundPointer(pointerY: number, draggedId: string) {
-    setOrderedIds((current) => {
-      const others = current.filter((id) => id !== draggedId);
-      let insertIndex = others.length;
+    const current = currentOrderRef.current;
+    const others = current.filter((id) => id !== draggedId);
+    let insertIndex = others.length;
 
-      for (let i = 0; i < others.length; i += 1) {
-        const el = rowRefs.current.get(others[i]);
-        if (!el) continue;
-        const rect = el.getBoundingClientRect();
-        const midpoint = rect.top + rect.height / 2;
-        if (pointerY < midpoint) {
-          insertIndex = i;
-          break;
-        }
+    for (let i = 0; i < others.length; i += 1) {
+      const el = rowRefs.current.get(others[i]);
+      if (!el) continue;
+      const rect = el.getBoundingClientRect();
+      const midpoint = rect.top + rect.height / 2;
+      if (pointerY < midpoint) {
+        insertIndex = i;
+        break;
       }
+    }
 
-      const next = [...others.slice(0, insertIndex), draggedId, ...others.slice(insertIndex)];
-      const unchanged = next.length === current.length && next.every((id, i) => id === current[i]);
-      return unchanged ? current : next;
-    });
+    const nextOrder = [...others.slice(0, insertIndex), draggedId, ...others.slice(insertIndex)];
+    const unchanged = nextOrder.length === current.length && nextOrder.every((id, i) => id === current[i]);
+
+    if (unchanged) {
+      return;
+    }
+
+    currentOrderRef.current = nextOrder;
+    setOptimisticOrderedIds(nextOrder);
   }
 
   function handlePointerDown(event: ReactPointerEvent<HTMLButtonElement>, id: string) {
-    if (!canManageProjects) return;
+    if (!canManageProjects || isReorderPending) return;
     event.currentTarget.setPointerCapture(event.pointerId);
-    dragStartOrderRef.current = orderedIds;
+    dragStartOrderRef.current = currentOrderRef.current;
     setDraggingId(id);
   }
 
@@ -120,19 +125,23 @@ export function ProjectSwitcher({
     if (!draggingId) return;
     setDraggingId(null);
 
-    const currentOrder = orderedIds;
+    const currentOrder = currentOrderRef.current;
+    const previousOrder = dragStartOrderRef.current;
     const orderChanged =
-      currentOrder.length !== dragStartOrderRef.current.length ||
-      currentOrder.some((id, i) => id !== dragStartOrderRef.current[i]);
+      currentOrder.length !== previousOrder.length || currentOrder.some((id, i) => id !== previousOrder[i]);
 
     if (!orderChanged) {
       return;
     }
 
     setReorderError(null);
-    void reorderProjectsAction(currentOrder).then((result) => {
+
+    startReorderTransition(async () => {
+      const result: ProjectState = await reorderProjectsAction(currentOrder);
       if (result.error) {
         setReorderError(result.error);
+        currentOrderRef.current = previousOrder;
+        setOptimisticOrderedIds(previousOrder);
       }
     });
   }
@@ -209,7 +218,7 @@ export function ProjectSwitcher({
                   <button
                     aria-label={`${project.name} 순서 옮기기`}
                     className="project-drag-handle"
-                    disabled={!canManageProjects}
+                    disabled={!canManageProjects || isReorderPending}
                     onPointerDown={(event) => handlePointerDown(event, project.id)}
                     onPointerMove={handlePointerMove}
                     onPointerUp={handlePointerUp}
@@ -278,6 +287,7 @@ export function ProjectSwitcher({
         </div>
         {deleteState.error ? <p className="error-text">{deleteState.error}</p> : null}
         {reorderError ? <p className="error-text">{reorderError}</p> : null}
+        {isReorderPending ? <p className="help-text">프로젝트 순서를 저장하는 중...</p> : null}
       </div>
 
       <form action={createAction} className="project-create-form">
