@@ -69,6 +69,8 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
 - 임시 원격 URL(Pinggy)로 외부 접속 검증 완료
 - Vercel production 배포 및 공개 URL 검증 완료
 - Vercel preview 배포 및 공개 preview 접근 검증 완료
+- 보드/회고 화면에 현재 배포 build badge(commit short SHA + environment) 노출 추가
+- `/api/version` 에 현재 배포 build 정보(commit SHA, short SHA, environment) 확인 경로 추가
 - `projects` / `project_id` 기반 다중 프로젝트 확장용 코드 구조 반영 완료
 - Supabase live DB에 `projects` / `project_id` migration 적용 완료
 - 기존 task / retro 데이터를 기본 프로젝트(`default`)로 backfill 완료
@@ -95,19 +97,20 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
   - 초대코드 입력 후 세션 발급
 - `/board`
   - 세션 확인 후 진입
-  - 현재 데이터 source 표시 (`sample`, `supabase`, `sample-fallback`, `legacy-supabase`)
   - task 생성 / 수정 / 삭제
   - Todo / Doing / Done 상태 변경
   - 내부적으로 `projectId` 전달 경로 반영 완료
   - 프로젝트 전환 UI 반영 완료 (`?project=<slug>`)
   - 프로젝트 목록에서 이름 인라인 수정 / 삭제("⋯" 메뉴) 반영 완료
   - 프로젝트 드래그 순서 변경 UI 반영 완료
+  - 현재 배포 build badge(commit short SHA + environment) 표시
 - `/retro`
   - 세션 확인 후 진입
   - 회고 조회
   - 회고 생성 / 수정 / 삭제
   - 내부적으로 `projectId` 전달 경로 반영 완료
   - 프로젝트 전환 UI 반영 완료 (`?project=<slug>`)
+  - 현재 배포 build badge(commit short SHA + environment) 표시
 - `/api/tasks`
   - GET 보호 API 동작 확인
   - POST / PATCH 기반 task 반영 경로 구현 완료
@@ -115,6 +118,8 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
 - `/api/retros`
   - GET 보호 API 동작 확인
   - `projectId` / `project` 파라미터 수용 및 legacy fallback 반영 완료
+- `/api/version`
+  - 현재 배포 build 정보(commit SHA, short SHA, environment) JSON 반환
 - Supabase live DB
   - `tasks_assignee_check` 제약 수정 후 `mingyoo`, `hyejin` 모두 정상 반영 확인
   - `projects` 테이블 및 `tasks.project_id`, `retros.project_id` migration 적용 완료
@@ -133,7 +138,8 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
 - Vercel preview는 현재 공개 접근 가능 상태이며, 앱 자체 초대코드 로그인만 거치면 된다.
 - Vercel 프로젝트의 Git 배포 설정은 켜져 있으므로 main 갱신 시 자동 배포가 기본 동작이지만, 예전 커밋 상태 로컬 워킹트리에서 실행한 수동 CLI 배포가 preview / production alias를 덮어쓸 수 있다.
 - 따라서 배포 이슈를 막기 위해 **production은 기본적으로 GitHub main 기준 자동 배포를 사용하고**, 수동 `vercel deploy` / `vercel deploy --prod`는 긴급 재배포나 확인이 꼭 필요할 때만 사용한다.
-- 수동 배포가 필요하면 항상 먼저 `git fetch` + `git pull --ff-only origin main`으로 최신 상태를 맞추고, 배포 후에는 실제 URL 로그인 화면/보드 화면까지 확인한다.
+- stale deployment 의심 시에는 보드/회고 화면 또는 `/api/version` 의 build badge(commit short SHA + environment)를 먼저 보고, GitHub main HEAD와 일치하는지 확인한다.
+- 수동 배포가 필요하면 항상 먼저 `git fetch` + `git checkout main` + `git pull --ff-only origin main`으로 최신 상태를 맞추고, 배포 후에는 실제 URL 로그인 화면/보드 화면까지 확인한다.
 
 ## 이 프로젝트에서 중요하게 보는 점
 - 기능을 많이 넣는 것보다 실제로 끝까지 출시하는 것
@@ -172,7 +178,8 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
 - [x] migration 이후 실제 다중 프로젝트 생성/전환 동작 검증
 - [x] 프로젝트 삭제 / 인라인 이름 수정 / 색 구분 UI 추가
 - [x] Supabase live DB에 `supabase/migrations/20260722_project_position.sql` 적용
-- [ ] `feature/project-panel-polish` 브랜치 리뷰 후 PR → main merge
+- [x] `feature/project-panel-polish` 브랜치 리뷰 후 main 반영
+- [x] 보드/회고 화면과 `/api/version` 에 현재 배포 build 정보 표시 추가
 - [ ] 필요 시 현재 문서 구조를 실제 구현 상태 기준으로 추가 정리
 
 ## 참고

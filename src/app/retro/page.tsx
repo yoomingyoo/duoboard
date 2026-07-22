@@ -1,3 +1,4 @@
+import { BuildInfoBadge } from "@/components/common/BuildInfoBadge";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ProjectSwitcher } from "@/components/projects/ProjectSwitcher";
 import { RetroForm } from "@/components/retro/RetroForm";
@@ -13,7 +14,7 @@ export default async function RetroPage({ searchParams }: RetroPageProps) {
   await requireInviteSession();
   const params = searchParams ? await searchParams : undefined;
   const { currentProject, projects, source: projectSource } = await resolveCurrentProject(params?.project);
-  const { retros, source } = await getRetros(currentProject.id);
+  const { retros } = await getRetros(currentProject.id);
 
   return (
     <main className="page-shell">
@@ -24,9 +25,8 @@ export default async function RetroPage({ searchParams }: RetroPageProps) {
       </p>
 
       <div className="page-toolbar">
-        <span className="source-badge">data source: {source}</span>
-        <span className="source-badge">project source: {projectSource}</span>
         <span className="source-badge">project: {currentProject.name}</span>
+        <BuildInfoBadge />
       </div>
 
       <div style={{ height: 20 }} />

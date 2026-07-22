@@ -53,9 +53,10 @@
 - preview에서 확인이 끝난 변경만 main에 반영하고, 필요 시 production까지 다시 확인한다.
 - 배포 관련 상태가 바뀌면 `docs/current-status.md`를 먼저 갱신한다.
 - 작업 시작 전에는 로컬 저장소를 먼저 `fetch/pull` 해서 최신 상태를 맞춘다.
-- 현재 Vercel 프로젝트는 Git 배포가 연결되어 있으므로, **main 업데이트 후 production 자동 배포가 기본 경로**다.
-- 다만 로컬에서 수동 `vercel deploy` / `vercel deploy --prod`를 실행하면 **그 시점 워킹트리 기준 배포가 alias를 덮어쓸 수 있으므로**, 수동 배포 전에는 반드시 최신 `main` 동기화 상태를 먼저 확인한다.
-- 특별한 이유가 없으면 production 반영은 **GitHub main push → Vercel 자동 배포 확인** 순서로 처리하고, 수동 CLI 배포는 장애 복구나 긴급 재배포처럼 필요한 경우에만 사용한다.
+- 현재 Vercel 프로젝트는 Git 배포가 연결되어 있으므로, **production 반영 기본 경로는 `GitHub main push → Vercel 자동 배포`** 다.
+- 특별한 이유가 없으면 **`vercel deploy --prod`는 사용하지 않는다.** 수동 CLI 배포는 preview 확인용 `vercel deploy` 또는 장애 복구/긴급 재배포처럼 꼭 필요한 경우에만 사용한다.
+- 부득이하게 production 수동 배포가 필요하면 반드시 먼저 `git fetch` + `git checkout main` + `git pull --ff-only origin main`으로 최신 main을 맞춘 뒤 실행한다.
+- 보드/회고 화면과 `/api/version` 에 현재 배포 commit short SHA와 environment가 노출되므로, stale deployment 의심 시 먼저 여기 표시값과 GitHub main HEAD를 비교한다.
 
 ## 메모
 이 레포는 초기에 문서/기획 중심으로 시작하고, 필요하면 그대로 실제 개발 레포로 확장하거나 별도 앱 레포를 분리할 수 있다.

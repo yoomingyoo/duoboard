@@ -1,5 +1,6 @@
 import { AddTaskForm } from "@/components/board/AddTaskForm";
 import { KanbanBoard } from "@/components/board/KanbanBoard";
+import { BuildInfoBadge } from "@/components/common/BuildInfoBadge";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ProjectSwitcher } from "@/components/projects/ProjectSwitcher";
 import { requireInviteSession } from "@/lib/auth/guard";
@@ -14,7 +15,7 @@ export default async function BoardPage({ searchParams }: BoardPageProps) {
   await requireInviteSession();
   const params = searchParams ? await searchParams : undefined;
   const { currentProject, projects, source: projectSource } = await resolveCurrentProject(params?.project);
-  const { tasks, source } = await getTasks(currentProject.id);
+  const { tasks } = await getTasks(currentProject.id);
 
   return (
     <main className="page-shell">
@@ -25,9 +26,8 @@ export default async function BoardPage({ searchParams }: BoardPageProps) {
       />
 
       <div className="page-toolbar">
-        <span className="source-badge">data source: {source}</span>
-        <span className="source-badge">project source: {projectSource}</span>
         <span className="source-badge">project: {currentProject.name}</span>
+        <BuildInfoBadge />
       </div>
 
       <div style={{ height: 20 }} />
