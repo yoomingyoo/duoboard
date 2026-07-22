@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
-import { useActionState, useEffect, useOptimistic, useRef, useState, useTransition } from "react";
+import { startTransition, useActionState, useEffect, useOptimistic, useRef, useState, useTransition } from "react";
 import {
   createProjectAction,
   deleteProjectAction,
@@ -106,7 +106,9 @@ export function ProjectSwitcher({
     }
 
     currentOrderRef.current = nextOrder;
-    setOptimisticOrderedIds(nextOrder);
+    startTransition(() => {
+      setOptimisticOrderedIds(nextOrder);
+    });
   }
 
   function handlePointerDown(event: ReactPointerEvent<HTMLButtonElement>, id: string) {
@@ -141,7 +143,9 @@ export function ProjectSwitcher({
       if (result.error) {
         setReorderError(result.error);
         currentOrderRef.current = previousOrder;
-        setOptimisticOrderedIds(previousOrder);
+        startTransition(() => {
+          setOptimisticOrderedIds(previousOrder);
+        });
       }
     });
   }
