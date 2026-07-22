@@ -72,6 +72,11 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
 - `projects` / `project_id` 기반 다중 프로젝트 확장용 코드 구조 반영 완료
 - Supabase live DB에 `projects` / `project_id` migration 적용 완료
 - 기존 task / retro 데이터를 기본 프로젝트(`default`)로 backfill 완료
+- 프로젝트 생성 / 전환 / 이름 수정 실사용 QA 완료 (혜진, production 기준)
+- 프로젝트 삭제 기능 추가 완료 (기본 프로젝트는 삭제 불가, 삭제 시 해당 프로젝트의 task/retro도 함께 삭제됨)
+- 프로젝트 목록 UI 개선 완료: 칸마다 "⋯" 메뉴(수정/삭제)로 통일, 목록에서 바로 이름 인라인 수정, 프로젝트별 색 구분 줄
+- 프로젝트 드래그 순서 변경 UI 구현 완료 (Pointer Events 기반, 신규 라이브러리 없음) — **단, DB에 `position` 컬럼 migration 미적용이라 아직 저장은 안 됨**
+- 회고 기록에 작성자 색 배지 추가, 담당자(민규/혜진) 배지 색 전체 조정
 
 ## 현재 확정된 결정
 - 플랫폼: 웹 앱
@@ -95,7 +100,8 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
   - Todo / Doing / Done 상태 변경
   - 내부적으로 `projectId` 전달 경로 반영 완료
   - 프로젝트 전환 UI 반영 완료 (`?project=<slug>`)
-  - 현재 프로젝트 이름 수정 UI 반영 완료
+  - 프로젝트 목록에서 이름 인라인 수정 / 삭제("⋯" 메뉴) 반영 완료
+  - 프로젝트 드래그 순서 변경 UI 반영 완료 (DB 저장은 migration 적용 후 가능)
 - `/retro`
   - 세션 확인 후 진입
   - 회고 조회
@@ -122,6 +128,7 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
 - Supabase repo의 `schema.sql`만 믿지 말고, 실제 hosted 프로젝트의 live constraint도 함께 확인해야 한다.
 - 현재 repo에는 `projects` / `project_id` 기반 schema와 실제 적용용 SQL(`supabase/migrations/20260721_project_scope_live.sql`)이 반영되어 있다.
 - hosted Supabase live DB에도 migration 적용이 끝났고, 검증 스크립트(`npm run check:project-scope`) 기준으로 `projects` / `project_id` 스키마가 활성화된 상태다.
+- **`feature/project-panel-polish` 브랜치(origin에 push됨)에 프로젝트 순서 변경 관련 새 migration(`supabase/migrations/20260722_project_position.sql`, `projects.position` 컬럼 추가)이 추가돼 있는데, 아직 live DB에는 미적용 상태다.** 로컬 REST API(서비스 롤 키)로는 DDL을 실행할 방법이 없어서(Supabase CLI 미설치, 직접 Postgres 연결 문자열 없음) AI가 직접 적용하지 못했고, 민규가 Supabase SQL Editor에서 직접 적용해야 한다. 적용 전까지는 드래그로 순서를 바꿔도 새로고침하면 원래 순서로 돌아간다.
 - 기존 fallback 코드는 남아 있으므로, 예전 schema로 되돌아간 환경이 아닌 한 현재 live는 project-scoped 경로를 사용한다.
 - Vercel preview는 현재 공개 접근 가능 상태이며, 앱 자체 초대코드 로그인만 거치면 된다.
 - Vercel 프로젝트의 Git 배포 설정은 켜져 있으므로 main 갱신 시 자동 배포가 기본 동작이지만, 예전 커밋 상태 로컬 워킹트리에서 실행한 수동 CLI 배포가 preview / production alias를 덮어쓸 수 있다.
@@ -162,8 +169,10 @@ Production / Preview 배포와 외부 접근 검증까지 끝냈고, 이제 남�
 - [ ] 동료와 preview 기준 원격 검수 후 UX 피드백 반영
 - [x] Supabase live DB에 `projects` / `project_id` migration 실제 적용
 - [x] 프로젝트 선택 UI / 프로젝트 생성 UI 기본 구조 구현
-- [ ] migration 이후 실제 다중 프로젝트 생성/전환 동작 검증
-- [ ] 동료에게 프로젝트 선택/전환/생성 UI 작업 범위 전달
+- [x] migration 이후 실제 다중 프로젝트 생성/전환 동작 검증
+- [x] 프로젝트 삭제 / 인라인 이름 수정 / 색 구분 UI 추가
+- [ ] **민규: `supabase/migrations/20260722_project_position.sql`을 live Supabase DB에 적용** (SQL Editor에서 직접 실행) — 적용해야 프로젝트 드래그 순서 변경이 실제로 저장됨
+- [ ] `feature/project-panel-polish` 브랜치 리뷰 후 PR → main merge
 - [ ] 필요 시 현재 문서 구조를 실제 구현 상태 기준으로 추가 정리
 
 ## 참고
