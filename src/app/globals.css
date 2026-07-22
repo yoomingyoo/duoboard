@@ -235,6 +235,38 @@ button:disabled {
   cursor: pointer;
 }
 
+.info-menu {
+  position: relative;
+}
+
+.info-menu__trigger {
+  cursor: pointer;
+  list-style: none;
+}
+
+.info-menu__trigger::-webkit-details-marker {
+  display: none;
+}
+
+.info-menu__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  min-width: 220px;
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.info-menu__panel .source-badge {
+  justify-content: flex-start;
+}
+
 .login-card {
   max-width: 480px;
 }

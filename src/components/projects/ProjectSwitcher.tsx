@@ -149,7 +149,6 @@ export function ProjectSwitcher({
           <p className="eyebrow">projects</p>
           <h2>프로젝트 전환</h2>
         </div>
-        <span className="source-badge">mode: {source}</span>
       </div>
 
       <div className="project-switcher__list-wrap">

@@ -1,4 +1,3 @@
-import { BuildInfoBadge } from "@/components/common/BuildInfoBadge";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ProjectSwitcher } from "@/components/projects/ProjectSwitcher";
 import { RetroForm } from "@/components/retro/RetroForm";
@@ -18,16 +17,17 @@ export default async function RetroPage({ searchParams }: RetroPageProps) {
 
   return (
     <main className="page-shell">
-      <PageHeader currentProjectSlug={currentProject.slug} pathLabel="/retro" title="주간 회고" />
+      <PageHeader
+        currentProjectSlug={currentProject.slug}
+        currentProjectName={currentProject.name}
+        pathLabel="/retro"
+        projectSource={projectSource}
+        title="주간 회고"
+      />
 
       <p className="lead">
         이번 주 Good / Bad / Next Action을 남기고, 다음 액션을 다시 보드 작업으로 연결하는 흐름을 목표로 합니다.
       </p>
-
-      <div className="page-toolbar">
-        <span className="source-badge">project: {currentProject.name}</span>
-        <BuildInfoBadge />
-      </div>
 
       <div style={{ height: 20 }} />
       <div className="retro-page-layout">

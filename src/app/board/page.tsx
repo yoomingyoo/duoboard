@@ -1,6 +1,5 @@
 import { AddTaskForm } from "@/components/board/AddTaskForm";
 import { KanbanBoard } from "@/components/board/KanbanBoard";
-import { BuildInfoBadge } from "@/components/common/BuildInfoBadge";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ProjectSwitcher } from "@/components/projects/ProjectSwitcher";
 import { requireInviteSession } from "@/lib/auth/guard";
@@ -21,14 +20,11 @@ export default async function BoardPage({ searchParams }: BoardPageProps) {
     <main className="page-shell">
       <PageHeader
         currentProjectSlug={currentProject.slug}
+        currentProjectName={currentProject.name}
         pathLabel="/board"
+        projectSource={projectSource}
         title="duoboard 작업 보드"
       />
-
-      <div className="page-toolbar">
-        <span className="source-badge">project: {currentProject.name}</span>
-        <BuildInfoBadge />
-      </div>
 
       <div style={{ height: 20 }} />
       <div className="board-layout board-layout--with-projects">

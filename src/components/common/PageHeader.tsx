@@ -1,13 +1,23 @@
 import Link from "next/link";
 import { logout } from "@/actions/auth";
+import { AppInfoMenu } from "@/components/common/AppInfoMenu";
+import type { ProjectSource } from "@/lib/projects";
 
 type PageHeaderProps = {
   title: string;
   pathLabel: string;
   currentProjectSlug?: string;
+  currentProjectName?: string;
+  projectSource?: ProjectSource;
 };
 
-export function PageHeader({ title, pathLabel, currentProjectSlug }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  pathLabel,
+  currentProjectSlug,
+  currentProjectName,
+  projectSource,
+}: PageHeaderProps) {
   const projectQuery = currentProjectSlug ? `?project=${encodeURIComponent(currentProjectSlug)}` : "";
 
   return (
@@ -28,6 +38,7 @@ export function PageHeader({ title, pathLabel, currentProjectSlug }: PageHeaderP
             회고
           </Link>
         </nav>
+        <AppInfoMenu projectName={currentProjectName} projectSource={projectSource} />
         <form action={logout}>
           <button className="nav-pill nav-pill--button" type="submit">
             로그아웃
